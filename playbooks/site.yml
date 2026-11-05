@@ -1,15 +1,10 @@
 ---
-# Chapter 6 · The whole fabric, from roles. When it's done, this replaces hello.yml, base.yml and
-# interfaces.yml.
+# Chapter 6 · The whole fabric, from roles. This replaces hello.yml, base.yml and interfaces.yml.
 #
-# TODO 6.1a  (follow along) The base role (ansible-galaxy role init roles/base): the banners, contact,
-#            domain, timezone, location and NTP, with the banner texts, contact, domain and timezone in
-#            defaults/main.yml (prefixed base_), and the save handler in handlers/main.yml. Run it from
-#            this play.
-# TODO 6.1b  (challenge) The interfaces role (roles/interfaces): the two interface loops from
-#            playbooks/interfaces.yml. Run it from this play too, after base.
-#
-#   make run T=6.1        then        make check T=6.1
+#   ansible-playbook playbooks/site.yml
 - name: Fabric
   hosts: fabric
   gather_facts: false
+  roles:
+    - base
+    - interfaces

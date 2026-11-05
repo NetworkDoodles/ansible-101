@@ -1,0 +1,3 @@
+---
+# Only the leaves. Beats the role's default base_motd_text, loses to anything in host_vars/.
+base_motd_text: "Leaf switch. Hosts plug in here; uplinks go to spine1."

@@ -1,0 +1,5 @@
+---
+- name: Save the running config
+  nokia.srlinux.cli:
+    commands:
+      - save startup

@@ -1,0 +1,41 @@
+---
+# The base config every switch gets. Values come from defaults/main.yml unless group_vars/ or
+# host_vars/ override them.
+- name: Banners
+  nokia.srlinux.config:
+    update:
+      - path: /system/banner
+        value:
+          login-banner: "{{ base_banner_text }}"
+          motd-banner: "{{ base_motd_text }}"
+  notify: Save the running config
+
+- name: Contact, domain and location
+  nokia.srlinux.config:
+    update:
+      - path: /system/information
+        value:
+          contact: "{{ base_contact }}"
+          location: "{{ location }}"
+      - path: /system/name
+        value:
+          domain-name: "{{ base_domain_name }}"
+  notify: Save the running config
+
+- name: Timezone
+  nokia.srlinux.config:
+    update:
+      - path: /system/clock
+        value:
+          timezone: "{{ base_timezone }}"
+  notify: Save the running config
+
+- name: NTP servers
+  nokia.srlinux.config:
+    update:
+      - path: /system/ntp
+        value:
+          admin-state: enable
+          network-instance: mgmt
+          server: "{{ ntp_servers }}"
+  notify: Save the running config
