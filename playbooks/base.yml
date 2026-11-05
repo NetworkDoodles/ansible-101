@@ -16,6 +16,7 @@
               admin-state: enable
               network-instance: mgmt
               server: "{{ ntp_servers }}"
+      notify: Save the running config
 
     - name: Where the switch lives, from host_vars
       nokia.srlinux.config:
@@ -23,4 +24,10 @@
           - path: /system/information
             value:
               location: "{{ location }}"
+      notify: Save the running config
 
+  handlers:
+    - name: Save the running config
+      nokia.srlinux.cli:
+        commands:
+          - save startup
