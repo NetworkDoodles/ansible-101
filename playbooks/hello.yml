@@ -9,15 +9,30 @@
   gather_facts: false
 
   tasks:
-    # TODO 2.1a  (follow along) Set the login banner on every switch to exactly:
-    #              Managed by Ansible · Network Doodles lab
-    #            Module nokia.srlinux.config, an `update` at path /system/banner with value
-    #            { login-banner: "..." }.
+    - name: Login banner
+      nokia.srlinux.config:
+        update:
+          - path: /system/banner
+            value:
+              login-banner: "Managed by Ansible · Network Doodles lab"
 
-    # TODO 2.1b  (challenge) A second task: who to call. /system/information, contact: netops@networkdoodles.com
+    - name: Who to call
+      nokia.srlinux.config:
+        update:
+          - path: /system/information
+            value:
+              contact: netops@networkdoodles.com
 
-    # TODO 2.2a  (follow along) Preview with --check --diff, then apply: the domain the switches live in.
-    #              /system/name         domain-name: lab.networkdoodles.com
+    - name: The domain the switches live in
+      nokia.srlinux.config:
+        update:
+          - path: /system/name
+            value:
+              domain-name: lab.networkdoodles.com
 
-    # TODO 2.2b  (challenge) Preview, then apply: the switches' timezone, America/New_York.
-    #              /system/clock        timezone: America/New_York
+    - name: Timezone
+      nokia.srlinux.config:
+        update:
+          - path: /system/clock
+            value:
+              timezone: America/New_York
