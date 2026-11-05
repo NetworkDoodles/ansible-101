@@ -1,9 +1,16 @@
 ---
-# Task 3.1 · Everything every switch in the fabric shares. Ansible loads this file for every host in
-# the `fabric` group, because the file is named after the group.
-#
-# TODO 3.1a  (follow along) Move the six ansible_* connection settings here from inventory/hosts.yml.
-# TODO 3.1b  (follow along) Add the fabric's NTP servers, shaped like the switch's own model:
-#              ntp_servers:
-#                - address: 162.159.200.1
-#                - address: 162.159.200.123
+# Everything every switch in the fabric shares. Ansible loads this for every host in the `fabric` group.
+
+# How to talk to the switches: SR Linux's JSON-RPC API over HTTPS.
+ansible_connection: ansible.netcommon.httpapi
+ansible_network_os: nokia.srlinux.srlinux
+ansible_httpapi_use_ssl: true
+ansible_httpapi_validate_certs: false   # lab switches have self-signed certificates
+ansible_user: admin
+ansible_password: NokiaSrl1!            # chapter 7 moves this into a vault
+
+# Facts about the fabric that the playbooks turn into config. Shaped like the switch's own model
+# (a list of servers, each with an address), so the playbook can hand it over as it is.
+ntp_servers:
+  - address: 162.159.200.1
+  - address: 162.159.200.123

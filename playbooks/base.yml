@@ -1,22 +1,26 @@
 ---
 # Chapters 3 and 5 · The base config every switch gets: NTP and where it lives.
 #
-# Nothing in here names a switch. The values come from inventory/group_vars/fabric.yml and
-# inventory/host_vars/<switch>.yml, so one play configures every switch differently.
-#
-#   make run T=3.1        then        make check T=3.1
+# Nothing in here is specific to one switch. The values come from group_vars/fabric.yml and
+# host_vars/<switch>.yml, so the same play configures every switch differently.
 - name: Base config
   hosts: fabric
   gather_facts: false
 
   tasks:
-    # TODO 3.1d  (follow along) Configure NTP from the ntp_servers variable: an update at /system/ntp with
-    #              admin-state: enable, network-instance: mgmt, server: "{{ ntp_servers }}"
+    - name: NTP servers, from group_vars
+      nokia.srlinux.config:
+        update:
+          - path: /system/ntp
+            value:
+              admin-state: enable
+              network-instance: mgmt
+              server: "{{ ntp_servers }}"
 
-    # TODO 3.1e  (challenge) Set /system/information location from the location variable.
+    - name: Where the switch lives, from host_vars
+      nokia.srlinux.config:
+        update:
+          - path: /system/information
+            value:
+              location: "{{ location }}"
 
-    # TODO 5.1a  (follow along) The NTP task: notify a handler that saves the running config.
-    # TODO 5.1c  (challenge) The location task notifies it too.
-
-  # TODO 5.1b  (follow along) A handlers section with one handler, "Save the running config", that runs the CLI
-  #            command `save startup` with nokia.srlinux.cli.
