@@ -7,7 +7,17 @@ ansible_network_os: nokia.srlinux.srlinux
 ansible_httpapi_use_ssl: true
 ansible_httpapi_validate_certs: false   # lab switches have self-signed certificates
 ansible_user: admin
-ansible_password: NokiaSrl1!            # chapter 7 moves this into a vault
+ansible_password: "{{ vault_ansible_password }}"   # from inventory/group_vars/all/vault.yml
+
+# Read-only SNMP community, encrypted on its own line with ansible-vault encrypt_string: the rest of
+# the file stays readable in a diff.
+snmp_community: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66383430653433353434623339646165323662353563666433656536636265656363663036313434
+          6664613762633965386332643232366336346632386135340a643662343635646137616537353532
+          33306363313861373066333064643661383535633463616435623835663434666364626662333864
+          3035363631363339320a303165363237343362633961623433353935623939386663633334636137
+          6538
 
 # Facts about the fabric that the playbooks turn into config. Shaped like the switch's own model
 # (a list of servers, each with an address), so the playbook can hand it over as it is.
