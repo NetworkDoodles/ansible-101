@@ -1,0 +1,10 @@
+---
+# ansible-lint settings (chapter 8). The production profile is the strictest built-in rule set.
+profile: production
+exclude_paths:
+  - build/
+  - answers/
+  - lab/
+  - .maint/
+  - execution-environment.yml
+  - ansible-navigator.yml

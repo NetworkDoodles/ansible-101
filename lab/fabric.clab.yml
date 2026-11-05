@@ -1,0 +1,50 @@
+# The lab's network, in containerlab: a small leaf-spine fabric of Nokia SR Linux switches, and a
+# Linux host on each leaf.
+#
+#              ┌──────────┐
+#              │  spine1  │
+#              └─┬──────┬─┘
+#           e1-1 │      │ e1-2
+#          e1-49 │      │ e1-49
+#        ┌───────┴┐    ┌┴───────┐
+#        │ leaf1  │    │ leaf2  │
+#        └───┬────┘    └────┬───┘
+#        e1-1│              │e1-1
+#          host1          host2
+#
+# The dev container starts it on every start (`make up`); `make down` removes it.
+name: ans101
+prefix: ""                          # containers are named after the nodes: ssh leaf1 just works
+
+mgmt:
+  network: ans101-mgmt
+  ipv4-subnet: 172.80.81.0/24
+
+topology:
+  kinds:
+    nokia_srlinux:
+      image: ghcr.io/nokia/srlinux:26.7.2
+      type: ixr-d2l
+    linux:
+      image: alpine:3.22
+
+  nodes:
+    spine1: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.10, labels: { graph-icon: switch, graph-level: "1" } }
+    leaf1: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.11, labels: { graph-icon: switch, graph-level: "2" } }
+    leaf2: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.12, labels: { graph-icon: switch, graph-level: "2" } }
+    host1:
+      kind: linux
+      mgmt-ipv4: 172.80.81.21
+      labels: { graph-icon: server, graph-level: "3" }
+      exec: ["ip addr add 10.10.1.10/24 dev eth1", "ip link set eth1 up"]
+    host2:
+      kind: linux
+      mgmt-ipv4: 172.80.81.22
+      labels: { graph-icon: server, graph-level: "3" }
+      exec: ["ip addr add 10.10.2.10/24 dev eth1", "ip link set eth1 up"]
+
+  links:
+    - endpoints: ["spine1:e1-1", "leaf1:e1-49"]
+    - endpoints: ["spine1:e1-2", "leaf2:e1-49"]
+    - endpoints: ["leaf1:e1-1", "host1:eth1"]
+    - endpoints: ["leaf2:e1-1", "host2:eth1"]

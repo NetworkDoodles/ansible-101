@@ -1,0 +1,24 @@
+{
+  // Shared by VS Code and code-server. The venv lives in the dev container's image (see .devcontainer/).
+  "python.defaultInterpreterPath": "/home/vscode/.venvs/lab/bin/python",
+  "python.terminal.activateEnvironment": false,
+  // Read defaultInterpreterPath directly. Going through the Python Environments extension races on
+  // startup and shows "An Invalid Python interpreter is selected" for a few seconds.
+  "python.useEnvironmentsExtension": false,
+  "ansible.python.interpreterPath": "/home/vscode/.venvs/lab/bin/python",
+  "ansible.ansible.path": "/home/vscode/.venvs/lab/bin/ansible",
+  "ansible.executionEnvironment.enabled": false,
+  "ansible.validation.lint.path": "/home/vscode/.venvs/lab/bin/ansible-lint",
+  "containerlab.showWelcomePage": false,
+  "files.associations": {
+    "playbooks/*.yml": "ansible",
+    "roles/**/*.yml": "ansible",
+    "*.clab.yml": "yaml"
+  },
+  "files.exclude": { "**/__pycache__": true, "build/": false },
+  "editor.renderWhitespace": "boundary",
+  "[yaml]": { "editor.tabSize": 2, "editor.insertSpaces": true },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/srl-labs/containerlab/main/schemas/clab.schema.json": "*.clab.yml"
+  }
+}

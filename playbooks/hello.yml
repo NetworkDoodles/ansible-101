@@ -1,0 +1,20 @@
+---
+# Chapter 2 · Your first playbook.
+#
+# A playbook is a list of plays. A play says which hosts, then lists tasks. A task calls one module.
+#
+#   make run T=2.1        then        make check T=2.1
+- name: Hello, fabric
+  hosts: fabric
+  gather_facts: false
+
+  tasks:
+    # TODO 2.1a  Set the login banner on every switch to exactly:
+    #              Managed by Ansible · Network Doodles lab
+    #            Module nokia.srlinux.config, an `update` at path /system/banner with value
+    #            { login-banner: "..." }.
+
+    # TODO 2.2a  Run it with --check --diff first, then for real:
+    #              /system/information  contact: netops@networkdoodles.com
+    #              /system/name         domain-name: lab.networkdoodles.com
+    #            One task can hold more than one update.

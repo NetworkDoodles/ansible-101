@@ -1,0 +1,11 @@
+.venv/
+.env
+build/
+__pycache__/
+*.pyc
+
+# containerlab writes each lab's state next to its topology
+lab/clab-*/
+
+# chapter 7: the vault password
+.vault-pass

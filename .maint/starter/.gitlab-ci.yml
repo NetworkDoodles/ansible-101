@@ -1,0 +1,19 @@
+---
+# Task 8.3 · The lab's pipeline. GitLab's runners can't reach the switches on your machine, so CI
+# checks everything it can without them: YAML style, Ansible lint, and that every playbook parses.
+# The starter on main in the upstream lab repo has open TODOs by design, so skip it there; it runs on
+# the solution branch and in your fork.
+workflow:
+  rules:
+    - if: $CI_PROJECT_PATH == "networkdoodles-labs/ansible-101" && $CI_COMMIT_BRANCH == "main"
+      when: never
+    - when: always
+
+default:
+  image: python:3.13-slim
+  before_script:
+    - pip install -q -r requirements.txt
+    - ansible-galaxy collection install -r requirements.yml > /dev/null
+
+# TODO 8.3a  A `lint` job whose script runs `yamllint .` and `ansible-lint --offline`.
+# TODO 8.3b  A `syntax` job whose script runs ansible-playbook playbooks/site.yml --syntax-check.
