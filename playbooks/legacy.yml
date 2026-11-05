@@ -1,17 +1,17 @@
 ---
 # Task 8.2 · A playbook someone wrote years ago. It works; ansible-lint has opinions.
-#
-# TODO 8.2  Run ansible-lint and fix every problem it reports in this file. Don't silence the rules.
-#           (follow along: the first three, in the guide. challenge: the rest.)
-- hosts: fabric
-  gather_facts: no
+- name: Show what each switch is running
+  hosts: fabric
+  gather_facts: false
 
   tasks:
-  - nokia.srlinux.get:
-      paths:
-        - path: /system/information/version
-          datastore: state
-    register: Version
+    - name: Read the software version
+      nokia.srlinux.get:
+        paths:
+          - path: /system/information/version
+            datastore: state
+      register: version
 
-  - debug:
-      msg: "{{inventory_hostname}}: {{ Version.result[0] }}"
+    - name: Show it
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ version.result[0] }}"

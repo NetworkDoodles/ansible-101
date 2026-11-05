@@ -6,8 +6,8 @@ ansible-navigator:
     image: ans101-ee:1
     pull:
       policy: never            # built locally by `make ee`, never pulled
-    # TODO 8.1b  (challenge) The EE is a container on its own network, so it can't see the switches. Join it to
-    #            theirs: container-options: ["--network=ans101-mgmt"]
+    # The EE is a container too: it joins the switches' management network so `leaf1` resolves.
+    container-options: ["--network=ans101-mgmt"]
   playbook-artifact:
     enable: false
   logging:
