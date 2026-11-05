@@ -1,3 +1,5 @@
 ---
-# Facts that belong to leaf2 alone. Anything here beats the same variable in group_vars/.
 location: Row A, rack 3
+interfaces:
+  - { name: ethernet-1/1, description: "host2" }
+  - { name: ethernet-1/49, description: "to spine1 ethernet-1/2", uplink: true }
