@@ -131,8 +131,8 @@ def t2_2():
     for sw in SWITCHES:
         domain = get(sw, "/system/name/domain-name")
         yield domain == "lab.networkdoodles.com", f"{sw} domain is lab.networkdoodles.com (got {domain!r})"
-        dns = sorted(str(x) for x in ((get(sw, "/system/dns") or {}).get("server-list") or []))
-        yield {"1.1.1.1", "9.9.9.9"} <= set(dns), f"the challenge: {sw} uses DNS servers 1.1.1.1 and 9.9.9.9 (got {dns})"
+        tz = get(sw, "/system/clock/timezone")
+        yield tz == "America/New_York", f"the challenge: {sw}'s timezone is America/New_York (got {tz!r})"
     code, out = ansible("ansible-playbook", "playbooks/hello.yml", "--check", "--diff")
     r = recap(out)
     yield code == 0 and r and sum(v["changed"] for v in r.values()) == 0, "--check --diff runs and finds nothing left to change"

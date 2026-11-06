@@ -19,5 +19,5 @@
     # TODO 2.2a  (follow along) Preview with --check --diff, then apply: the domain the switches live in.
     #              /system/name         domain-name: lab.networkdoodles.com
 
-    # TODO 2.2b  (challenge) Preview, then apply: the DNS servers, 1.1.1.1 and 9.9.9.9.
-    #              /system/dns          network-instance: mgmt, server-list: [ ... ]
+    # TODO 2.2b  (challenge) Preview, then apply: the switches' timezone, America/New_York.
+    #              /system/clock        timezone: America/New_York
