@@ -1,0 +1,31 @@
+---
+# The base config every switch gets. Values come from defaults/main.yml unless group_vars/ or
+# host_vars/ override them.
+- name: Login banner
+  cisco.ios.ios_banner:
+    banner: login
+    text: "{{ base_banner_text }}"
+    state: present
+  notify: Save the running config
+
+- name: Message of the day
+  cisco.ios.ios_banner:
+    banner: motd
+    text: "{{ base_motd_text }}"
+    state: present
+  notify: Save the running config
+
+- name: Contact, domain, location and LLDP
+  cisco.ios.ios_config:
+    lines:
+      - "snmp-server contact {{ base_contact }}"
+      - "ip domain name {{ base_domain_name }}"
+      - "snmp-server location {{ location }}"
+      - lldp run
+  notify: Save the running config
+
+- name: NTP servers
+  cisco.ios.ios_ntp_global:
+    config:
+      servers: "{{ ntp_servers }}"
+  notify: Save the running config
