@@ -1,8 +1,8 @@
 ---
 # Task 1.3 · Ask the switches. Fill these in from what your ad-hoc commands print.
 #
-# TODO 1.3a  Each switch's software version (the `version` field of /system/information).
-# TODO 1.3b  leaf1's chassis serial number (the `serial-number` field of /platform/chassis).
+# TODO 1.3a  (follow along) Each switch's software version (the `version` field of /system/information).
+# TODO 1.3b  (challenge) leaf1's chassis serial number (the `serial-number` field of /platform/chassis).
 spine1:
   version:
 leaf1:

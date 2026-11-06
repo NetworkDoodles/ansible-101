@@ -10,9 +10,10 @@
   gather_facts: false
 
   tasks:
-    # TODO 4.1b  Loop over `interfaces`: for each one, an update at /interface[name=<its name>] with its
+    # TODO 4.1b  (follow along) Loop over `interfaces`: for each one, an update at /interface[name=<its name>] with its
     #            description and admin-state: enable. Label the loop with item.name.
 
-    # TODO 4.1c  A second loop that sets mtu: 9100, but only `when` the port is an uplink.
+    # TODO 4.1d  (challenge) A second loop that sets mtu: 9100, but only `when` the port is an uplink.
 
-    # TODO 5.2a  Tag the first task `descriptions` and the second `mtu`.
+    # TODO 5.2a  (follow along) Tag the first task `descriptions`.
+    # TODO 5.2b  (challenge) Tag the second task `mtu`.

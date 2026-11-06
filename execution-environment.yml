@@ -14,6 +14,6 @@ dependencies:
     package_pip: ansible-core==2.20.1
   ansible_runner:
     package_pip: ansible-runner==2.4.3
-  # TODO 8.1a  The collections: point `galaxy` at the same requirements.yml the venv uses.
+  # TODO 8.1a  (follow along) The collections: point `galaxy` at the same requirements.yml the venv uses.
 options:
   package_manager_path: /usr/bin/dnf5

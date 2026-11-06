@@ -10,12 +10,13 @@
   gather_facts: false
 
   tasks:
-    # TODO 3.1d  Configure NTP from the ntp_servers variable: an update at /system/ntp with
+    # TODO 3.1d  (follow along) Configure NTP from the ntp_servers variable: an update at /system/ntp with
     #              admin-state: enable, network-instance: mgmt, server: "{{ ntp_servers }}"
 
-    # TODO 3.1e  Set /system/information location from the location variable.
+    # TODO 3.1e  (challenge) Set /system/information location from the location variable.
 
-    # TODO 5.1a  Both tasks: notify a handler that saves the running config.
+    # TODO 5.1a  (follow along) The NTP task: notify a handler that saves the running config.
+    # TODO 5.1c  (challenge) The location task notifies it too.
 
-  # TODO 5.1b  A handlers section with one handler, "Save the running config", that runs the CLI
+  # TODO 5.1b  (follow along) A handlers section with one handler, "Save the running config", that runs the CLI
   #            command `save startup` with nokia.srlinux.cli.

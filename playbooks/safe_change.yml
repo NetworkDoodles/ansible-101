@@ -26,5 +26,5 @@
                 value:
                   mtu: 99999
 
-      # TODO 5.3a  A rescue section that puts the MTU back to 9100 and says what happened.
-      # TODO 5.3b  An always section that reads the MTU back and shows it.
+      # TODO 5.3a  (follow along) A rescue section that puts the MTU back to 9100 and says what happened.
+      # TODO 5.3b  (challenge) An always section that reads the MTU back and shows it.

@@ -9,12 +9,15 @@
   gather_facts: false
 
   tasks:
-    # TODO 2.1a  Set the login banner on every switch to exactly:
+    # TODO 2.1a  (follow along) Set the login banner on every switch to exactly:
     #              Managed by Ansible · Network Doodles lab
     #            Module nokia.srlinux.config, an `update` at path /system/banner with value
     #            { login-banner: "..." }.
 
-    # TODO 2.2a  Run it with --check --diff first, then for real:
-    #              /system/information  contact: netops@networkdoodles.com
+    # TODO 2.1b  (challenge) A second task: who to call. /system/information, contact: netops@networkdoodles.com
+
+    # TODO 2.2a  (follow along) Preview with --check --diff, then apply: the domain the switches live in.
     #              /system/name         domain-name: lab.networkdoodles.com
-    #            One task can hold more than one update.
+
+    # TODO 2.2b  (challenge) Preview, then apply: the DNS servers, 1.1.1.1 and 9.9.9.9.
+    #              /system/dns          network-instance: mgmt, server-list: [ ... ]

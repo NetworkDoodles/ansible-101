@@ -121,15 +121,18 @@ def t2_1():
     for sw in SWITCHES:
         b = get(sw, "/system/banner/login-banner")
         yield b == BANNER, f"{sw} shows the login banner" + ("" if b == BANNER else f" (got {b!r})")
+    for sw in SWITCHES:
+        contact = get(sw, "/system/information/contact")
+        yield bool(contact) and "@" in str(contact), f"the challenge: {sw} has a contact email (got {contact!r})"
     yield from idempotent("playbooks/hello.yml")
 
 
 def t2_2():
     for sw in SWITCHES:
-        contact = get(sw, "/system/information/contact")
-        yield bool(contact) and "@" in str(contact), f"{sw} has a contact email (got {contact!r})"
         domain = get(sw, "/system/name/domain-name")
         yield domain == "lab.networkdoodles.com", f"{sw} domain is lab.networkdoodles.com (got {domain!r})"
+        dns = sorted(str(x) for x in ((get(sw, "/system/dns") or {}).get("server-list") or []))
+        yield {"1.1.1.1", "9.9.9.9"} <= set(dns), f"the challenge: {sw} uses DNS servers 1.1.1.1 and 9.9.9.9 (got {dns})"
     code, out = ansible("ansible-playbook", "playbooks/hello.yml", "--check", "--diff")
     r = recap(out)
     yield code == 0 and r and sum(v["changed"] for v in r.values()) == 0, "--check --diff runs and finds nothing left to change"
@@ -208,6 +211,10 @@ def t5_1():
         yield bool(ntp) and all(a in p.stdout for a in ntp), f"{sw}'s startup config has the NTP servers: the handler saved it"
     code, out = ansible("ansible-playbook", "playbooks/base.yml")
     yield code == 0 and "RUNNING HANDLER" not in out, "a second run changes nothing, so the handler stays quiet"
+    # The challenge: the location task notifies the handler too. Move leaf1, and only the location changes.
+    SRL("leaf1").set([{"action": "update", "path": "/system/information", "value": {"location": "moved by the checker"}}])
+    code, out = ansible("ansible-playbook", "playbooks/base.yml")
+    yield code == 0 and "RUNNING HANDLER" in out, "the challenge: a location change alone also runs the save handler"
 
 
 def t5_2():
@@ -218,6 +225,10 @@ def t5_2():
     all_tasks = [ln for ln in out2.splitlines() if "TAGS:" in ln and "play #" not in ln]
     yield len(all_tasks) > len(tasks), "and leaves the others out"
     yield from playbook_ok("playbooks/interfaces.yml", "--tags", "descriptions")
+    code, out = ansible("ansible-playbook", "playbooks/interfaces.yml", "--list-tasks", "--tags", "mtu")
+    mtu = [ln for ln in out.splitlines() if "TAGS:" in ln and "play #" not in ln]
+    yield code == 0 and len(mtu) >= 1 and all("descriptions" not in ln for ln in mtu), \
+        f"the challenge: --tags mtu selects the MTU task, and only that ({len(mtu)})"
 
 
 def t5_3():
@@ -228,6 +239,11 @@ def t5_3():
     for sw in LEAVES:
         mtu = get(sw, "/interface[name=ethernet-1/49]/mtu")
         yield mtu == 9100, f"{sw} ethernet-1/49 is back to its known-good MTU 9100 (got {mtu})"
+    play = (load("playbooks/safe_change.yml") or [{}])[0]
+    blocks = [t for t in play.get("tasks") or [] if isinstance(t, dict) and "block" in t]
+    yield blocks and blocks[0].get("always"), "the challenge: the block has an always section"
+    names = [t.get("name") for t in (blocks[0].get("always") or [])] if blocks else []
+    yield names and all(f"TASK [{n}]" in out for n in names), "...and it ran, after the rescue"
 
 
 # ── chapter 6 · roles and collections ──────────────────────────────────────────
@@ -243,10 +259,13 @@ def t6_1():
 def t6_2():
     want = (load("inventory/group_vars/leaves.yml") or {}).get("base_motd_text")
     yield bool(want), "inventory/group_vars/leaves.yml overrides base_motd_text"
+    own = (load("inventory/host_vars/leaf2.yml") or {}).get("base_motd_text")
+    yield bool(own) and own != want, "the challenge: inventory/host_vars/leaf2.yml gives leaf2 a message of its own"
     yield from playbook_ok("playbooks/site.yml")
-    for sw in LEAVES:
-        got = get(sw, "/system/banner/motd-banner")
-        yield got == want, f"{sw} shows the leaves' message of the day (got {got!r})"
+    got = get("leaf1", "/system/banner/motd-banner")
+    yield got == want, f"leaf1 shows the leaves' message of the day (got {got!r})"
+    got = get("leaf2", "/system/banner/motd-banner")
+    yield bool(own) and got == own, f"leaf2 shows its own: host_vars beats group_vars (got {got!r})"
     default = (load("roles/base/defaults/main.yml") or {}).get("base_motd_text")
     got = get("spine1", "/system/banner/motd-banner")
     yield bool(default) and got == default, f"spine1 keeps the role's default (got {got!r})"
@@ -265,6 +284,11 @@ def t7_1():
         "inventory/group_vars/fabric.yml gets ansible_password from the vault"
     ignored = subprocess.run(["git", "check-ignore", "-q", ".vault-pass"], cwd=ROOT).returncode == 0
     yield ignored, ".vault-pass is git-ignored"
+    fabric = (ROOT / "inventory/group_vars/fabric.yml").read_text() if (ROOT / "inventory/group_vars/fabric.yml").exists() else ""
+    yield re.search(r"^snmp_community:\s*!vault", fabric, re.M), \
+        "the challenge: snmp_community is in group_vars/fabric.yml, encrypted inline (ansible-vault encrypt_string)"
+    code, out = ansible("ansible", "spine1", "-m", "ansible.builtin.debug", "-a", "var=snmp_community")
+    yield code == 0 and "VARIABLE IS NOT DEFINED" not in out and "snmp_community" in out, "...and Ansible decrypts it"
     yield from playbook_ok("playbooks/site.yml")
 
 
@@ -309,7 +333,7 @@ TASKS = {
     "5.3": ("when it goes wrong", ["playbooks/safe_change.yml"]),
     "6.1": ("playbooks into roles", ["roles/base/tasks/main.yml", "roles/base/defaults/main.yml",
                                       "roles/base/handlers/main.yml", "roles/interfaces/tasks/main.yml", "playbooks/site.yml"]),
-    "6.2": ("defaults and overrides", ["inventory/group_vars/leaves.yml"]),
+    "6.2": ("defaults and overrides", ["inventory/group_vars/leaves.yml", "inventory/host_vars/leaf2.yml"]),
     "7.1": ("vault the password", ["inventory/group_vars/fabric.yml", "inventory/group_vars/all/vault.yml", "ansible.cfg", ".gitignore"]),
     "8.1": ("execution environments", ["execution-environment.yml", "ansible-navigator.yml"]),
     "8.2": ("ansible-lint", ["playbooks/legacy.yml"]),

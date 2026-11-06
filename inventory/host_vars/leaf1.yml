@@ -1,8 +1,8 @@
 ---
 # Facts that belong to leaf1 alone.
 #
-# TODO 3.1c  Where leaf1 lives:  location: Row A, rack 2
+# TODO 3.1c  (challenge) Where leaf1 lives:  location: Row A, rack 2
 #
-# TODO 4.1a  leaf1's ports, like inventory/host_vars/spine1.yml:
+# TODO 4.1a  (follow along) leaf1's ports, like inventory/host_vars/spine1.yml:
 #              ethernet-1/1   description "host1"
 #              ethernet-1/49  description "to spine1 ethernet-1/1", and it's an uplink

@@ -15,5 +15,5 @@ default:
     - pip install -q -r requirements.txt
     - ansible-galaxy collection install -r requirements.yml > /dev/null
 
-# TODO 8.3a  A `lint` job whose script runs `yamllint .` and `ansible-lint --offline`.
-# TODO 8.3b  A `syntax` job whose script runs ansible-playbook playbooks/site.yml --syntax-check.
+# TODO 8.3a  (follow along) A `lint` job whose script runs `yamllint .` and `ansible-lint --offline`.
+# TODO 8.3b  (challenge) A `syntax` job whose script runs ansible-playbook playbooks/site.yml --syntax-check.
