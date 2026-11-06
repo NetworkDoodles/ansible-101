@@ -7,11 +7,10 @@
   gather_facts: no
 
   tasks:
-  - nokia.srlinux.get:
-      paths:
-        - path: /system/information/version
-          datastore: state
+  - cisco.ios.ios_command:
+      commands:
+        - show version
     register: Version
 
   - debug:
-      msg: "{{inventory_hostname}}: {{ Version.result[0] }}"
+      msg: "{{inventory_hostname}}: {{ Version.stdout_lines[0][0] }}"

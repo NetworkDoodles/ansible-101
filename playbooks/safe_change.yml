@@ -1,7 +1,7 @@
 ---
 # Task 5.3 · When a change goes wrong halfway.
 #
-# The block makes two changes. The second one fails on purpose (SR Linux rejects an MTU that big).
+# The block makes two changes. The second one fails on purpose (the switch rejects an MTU that big).
 # As it stands, leaf1 and leaf2 are left half-changed: run it and see.
 #
 #   make run T=5.3        then        make check T=5.3
@@ -13,18 +13,17 @@
     - name: Change the uplinks
       block:
         - name: Step 1 · lower the uplink MTU (this works)
-          nokia.srlinux.config:
-            update:
-              - path: /interface[name=ethernet-1/49]
-                value:
-                  mtu: 1500
+          cisco.ios.ios_interfaces:
+            config:
+              - name: GigabitEthernet1
+                mtu: 1500
 
         - name: Step 2 · an MTU no switch supports (this fails)
-          nokia.srlinux.config:
-            update:
-              - path: /interface[name=ethernet-1/49]
-                value:
-                  mtu: 99999
+          cisco.ios.ios_interfaces:
+            config:
+              - name: GigabitEthernet1
+                mtu: 99999
 
       # TODO 5.3a  (follow along) A rescue section that puts the MTU back to 9100 and says what happened.
-      # TODO 5.3b  (challenge) An always section that reads the MTU back and shows it.
+      # TODO 5.3b  (challenge) An always section that reads the port's config back and shows it:
+      #              show running-config interface GigabitEthernet1

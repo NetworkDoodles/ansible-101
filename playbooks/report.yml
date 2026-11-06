@@ -7,16 +7,13 @@
   gather_facts: false
 
   tasks:
-    - name: Read system information
-      nokia.srlinux.get:
-        paths:
-          - path: /system/information
-            datastore: state
-      register: info
+    - name: Gather the switch's facts
+      cisco.ios.ios_facts:
+        gather_subset: min
 
     - name: Keep the version
       ansible.builtin.set_fact:
-        sw_version: "{{ info.result[0].version }}"
+        sw_version: "{{ ansible_facts.net_version }}"
 
 - name: Write the report
   hosts: localhost

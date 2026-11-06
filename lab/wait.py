@@ -1,23 +1,33 @@
-"""Wait for every switch's API to answer, then print how to reach them."""
+"""Wait until every switch has booted and answers SSH, then print how to reach them."""
+import socket
+import subprocess
 import sys
 import time
 import pathlib
 
 sys.path.insert(0, pathlib.Path(__file__).resolve().parents[1].as_posix())
-from lib.srl import SRL, SWITCHES  # noqa: E402
+from lib.bolt import SWITCHES  # noqa: E402
 
-deadline = time.time() + 300
+
+def ready(sw):
+    # CapeOS creates /run/capeos/ready once its startup config is applied; Ansible then needs SSH.
+    booted = subprocess.run(["docker", "exec", sw, "test", "-f", "/run/capeos/ready"], capture_output=True).returncode == 0
+    if not booted:
+        return False
+    try:
+        socket.create_connection((sw, 22), timeout=3).close()
+        return True
+    except OSError:
+        return False
+
+
+deadline = time.time() + 120
 pending = list(SWITCHES)
 while pending:
-    for sw in list(pending):
-        try:
-            SRL(sw, timeout=5).get("/system/information/version", "state")
-            pending.remove(sw)
-        except Exception:
-            pass
+    pending = [sw for sw in pending if not ready(sw)]
     if pending:
         if time.time() > deadline:
-            sys.exit(f"these switches didn't answer in 5 minutes: {', '.join(pending)}")
+            sys.exit(f"these switches didn't come up in 2 minutes: {', '.join(pending)}   (docker logs {pending[0]} says why)")
         print(f"  waiting for {', '.join(pending)} ...", flush=True)
-        time.sleep(5)
+        time.sleep(2)
 print("\n  switches are up: spine1, leaf1, leaf2   (make ssh NODE=leaf1 for a CLI)\n")

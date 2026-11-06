@@ -1,16 +1,20 @@
-# The lab's network, in containerlab: a small leaf-spine fabric of Nokia SR Linux switches, and a
-# Linux host on each leaf.
+# The lab's network, in containerlab: three CapeOS Bolt switches in a small leaf-spine fabric, and a
+# Linux host on each leaf. Bolt is a lab network OS with a classic industry CLI: `show running-config`,
+# `configure terminal`, `interface GigabitEthernet1`.
 #
 #              ┌──────────┐
 #              │  spine1  │
 #              └─┬──────┬─┘
-#           e1-1 │      │ e1-2
-#          e1-49 │      │ e1-49
+#            Gi1 │      │ Gi2
+#            Gi1 │      │ Gi1
 #        ┌───────┴┐    ┌┴───────┐
 #        │ leaf1  │    │ leaf2  │
 #        └───┬────┘    └────┬───┘
-#        e1-1│              │e1-1
+#         Gi2│              │Gi2
 #          host1          host2
+#
+# containerlab names ports by their Linux names (eth1); the switches call the same port
+# GigabitEthernet1. eth0 is the management port, GigabitEthernet0.
 #
 # The dev container starts it on every start (`make up`); `make down` removes it.
 name: ans101
@@ -21,30 +25,44 @@ mgmt:
   ipv4-subnet: 172.80.81.0/24
 
 topology:
+  defaults:
+    kind: linux                     # every node is a plain Linux container: the switches and the hosts
+    env:
+      CAPEOS_USER: admin
+      CAPEOS_PASSWORD: capeos-lab   # the lab login; chapter 7 moves it into a vault
   kinds:
-    nokia_srlinux:
-      image: ghcr.io/nokia/srlinux:26.7.2
-      type: ixr-d2l
     linux:
-      image: alpine:3.22
+      image: alpine:3.22            # the hosts; the switches name their own image
 
   nodes:
-    spine1: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.10, labels: { graph-icon: switch, graph-level: "1" } }
-    leaf1: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.11, labels: { graph-icon: switch, graph-level: "2" } }
-    leaf2: { kind: nokia_srlinux, mgmt-ipv4: 172.80.81.12, labels: { graph-icon: switch, graph-level: "2" } }
+    # Each switch boots from a copy of lab/configs/<switch>.cfg (`make up` makes the copies), so
+    # `write memory` saves into build/startup/, never into a file Git tracks.
+    spine1:
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      mgmt-ipv4: 172.80.81.10
+      binds: [../build/startup/spine1.cfg:/flash/startup-config]
+      labels: { graph-icon: switch, graph-level: "1" }
+    leaf1:
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      mgmt-ipv4: 172.80.81.11
+      binds: [../build/startup/leaf1.cfg:/flash/startup-config]
+      labels: { graph-icon: switch, graph-level: "2" }
+    leaf2:
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      mgmt-ipv4: 172.80.81.12
+      binds: [../build/startup/leaf2.cfg:/flash/startup-config]
+      labels: { graph-icon: switch, graph-level: "2" }
     host1:
-      kind: linux
       mgmt-ipv4: 172.80.81.21
       labels: { graph-icon: server, graph-level: "3" }
       exec: ["ip addr add 10.10.1.10/24 dev eth1", "ip link set eth1 up"]
     host2:
-      kind: linux
       mgmt-ipv4: 172.80.81.22
       labels: { graph-icon: server, graph-level: "3" }
       exec: ["ip addr add 10.10.2.10/24 dev eth1", "ip link set eth1 up"]
 
   links:
-    - endpoints: ["spine1:e1-1", "leaf1:e1-49"]
-    - endpoints: ["spine1:e1-2", "leaf2:e1-49"]
-    - endpoints: ["leaf1:e1-1", "host1:eth1"]
-    - endpoints: ["leaf2:e1-1", "host2:eth1"]
+    - endpoints: ["spine1:eth1", "leaf1:eth1"]
+    - endpoints: ["spine1:eth2", "leaf2:eth1"]
+    - endpoints: ["leaf1:eth2", "host1:eth1"]
+    - endpoints: ["leaf2:eth2", "host2:eth1"]

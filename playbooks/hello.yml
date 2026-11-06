@@ -9,15 +9,15 @@
   gather_facts: false
 
   tasks:
-    # TODO 2.1a  (follow along) Set the login banner on every switch to exactly:
-    #              Managed by Ansible · Network Doodles lab
-    #            Module nokia.srlinux.config, an `update` at path /system/banner with value
-    #            { login-banner: "..." }.
+    # TODO 2.1a  (follow along) Who to call: with cisco.ios.ios_config, the config line
+    #              snmp-server contact netops@networkdoodles.com
 
-    # TODO 2.1b  (challenge) A second task: who to call. /system/information, contact: netops@networkdoodles.com
+    # TODO 2.1b  (challenge) A second task: the login banner, exactly
+    #              Managed by Ansible - Network Doodles lab
+    #            Module cisco.ios.ios_banner: banner: login, text: "...", state: present
 
-    # TODO 2.2a  (follow along) Preview with --check --diff, then apply: the domain the switches live in.
-    #              /system/name         domain-name: lab.networkdoodles.com
+    # TODO 2.2a  (follow along) Preview with --check -v, then apply: the domain the switches live in.
+    #              ip domain name lab.networkdoodles.com
 
-    # TODO 2.2b  (challenge) Preview, then apply: the switches' timezone, America/New_York.
-    #              /system/clock        timezone: America/New_York
+    # TODO 2.2b  (challenge) Preview, then apply: turn on LLDP, so each switch learns its neighbors.
+    #              lldp run

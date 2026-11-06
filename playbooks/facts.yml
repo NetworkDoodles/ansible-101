@@ -7,17 +7,11 @@
   gather_facts: false
 
   tasks:
-    - name: Read system information and the chassis
-      nokia.srlinux.get:
-        paths:
-          - path: /system/information
-            datastore: state
-          - path: /platform/chassis
-            datastore: state
-      # TODO 3.2a  (follow along) Save the result in a variable called `info` (one keyword).
+    # TODO 3.2a  (follow along) Gather the switch's facts with cisco.ios.ios_facts, gather_subset: min. Its
+    #            answers land in ansible_facts: ansible_facts.net_version, ansible_facts.net_serialnum ...
 
-    # TODO 3.2b  (follow along) With set_fact, keep two facts: sw_version from the first result's `version`, and
-    #            sw_serial from the second result's `serial-number`. Then debug them.
+    # TODO 3.2b  (follow along) With set_fact, keep two facts under short names: sw_version and sw_serial.
+    #            Then debug them.
 
     # TODO 3.2c  (challenge) Write build/facts/<switch>.yml with both facts (copy module, content as YAML).
     #            Files are written on this machine, not the switch: delegate_to: localhost. The

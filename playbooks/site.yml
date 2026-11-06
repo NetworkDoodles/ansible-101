@@ -3,7 +3,7 @@
 # interfaces.yml.
 #
 # TODO 6.1a  (follow along) The base role (ansible-galaxy role init roles/base): the banners, contact,
-#            domain, timezone, location and NTP, with the banner texts, contact, domain and timezone in
+#            domain, LLDP, location and NTP, with the banner texts, contact and domain in
 #            defaults/main.yml (prefixed base_), and the save handler in handlers/main.yml. Run it from
 #            this play.
 # TODO 6.1b  (challenge) The interfaces role (roles/interfaces): the two interface loops from

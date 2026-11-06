@@ -20,6 +20,12 @@ RUN uv venv -q --python 3.13 "$VENV" \
  && "$VENV/bin/ansible-galaxy" collection install -r /tmp/lab/requirements.yml \
  && cd /tmp/lab && python3 -c "import hashlib,sys; print(hashlib.sha256(b''.join(open(f,'rb').read() for f in sys.argv[1:])).hexdigest()[:16])" requirements.txt requirements.yml > "$VENV/.ok"
 
+# The switches get new SSH host keys every time the lab starts, so `ssh admin@leaf1` would refuse them as
+# changed. Lab switches only: never do this for real devices.
+RUN mkdir -p /home/vscode/.ssh && chmod 700 /home/vscode/.ssh \
+ && printf 'Host spine1 leaf1 leaf2\n  User admin\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  LogLevel ERROR\n' > /home/vscode/.ssh/config \
+ && chmod 600 /home/vscode/.ssh/config
+
 # code-server reads its own settings, not devcontainer.json's: the workspace's .vscode/ covers the
 # extensions, and these user settings cover what a workspace isn't allowed to set.
 COPY --chown=vscode:vscode .devcontainer/code-server-settings.json /home/vscode/.local/share/code-server/User/settings.json

@@ -10,8 +10,8 @@
   gather_facts: false
 
   tasks:
-    # TODO 4.1b  (follow along) Loop over `interfaces`: for each one, an update at /interface[name=<its name>] with its
-    #            description and admin-state: enable. Label the loop with item.name.
+    # TODO 4.1b  (follow along) Loop over `interfaces`: for each one, cisco.ios.ios_interfaces with its name,
+    #            its description and enabled: true (that's `no shutdown`). Label the loop with item.name.
 
     # TODO 4.1d  (challenge) A second loop that sets mtu: 9100, but only `when` the port is an uplink.
 
