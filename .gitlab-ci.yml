@@ -5,9 +5,23 @@
 # the solution branch and in your fork.
 workflow:
   rules:
+    - if: $CI_COMMIT_TAG                     # the solution-chN tags are snapshots, not branches to test
+      when: never
     - if: $CI_PROJECT_PATH == "networkdoodles-labs/ansible-101" && $CI_COMMIT_BRANCH == "main"
       when: never
     - when: always
+
+variables:
+  # GitLab checks the repo out into a world-writable folder, and Ansible won't read ansible.cfg from one.
+  # Naming it explicitly makes every job use it (the inventory, the roles path, the vault settings).
+  ANSIBLE_CONFIG: $CI_PROJECT_DIR/ansible.cfg
+
+# GitLab refuses a pipeline file with no jobs at all. This one never runs: it just keeps the file valid
+# until you add yours. Leave it.
+placeholder:
+  script: ["true"]
+  rules:
+    - when: never
 
 default:
   image: python:3.13-slim

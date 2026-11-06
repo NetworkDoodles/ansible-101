@@ -10,5 +10,6 @@ rules:
   octal-values: { forbid-implicit-octal: true, forbid-explicit-octal: true }
 ignore: |
   .venv/
+  .maint/
   build/
   lab/clab-*/
