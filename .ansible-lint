@@ -8,3 +8,4 @@ exclude_paths:
   - .maint/
   - execution-environment.yml
   - ansible-navigator.yml
+  - inventory/group_vars/all/vault.yml   # encrypted: nothing to lint
