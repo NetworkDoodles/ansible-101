@@ -1,7 +1,6 @@
 ---
 # Facts that belong to leaf1 alone.
 location: Row A, rack 2
-#
-# TODO 4.1a  (follow along) leaf1's ports, like inventory/host_vars/spine1.yml:
-#              GigabitEthernet1  description "to spine1 Gi1", and it's an uplink
-#              GigabitEthernet2  description "host1"
+interfaces:
+  - { name: GigabitEthernet1, description: "to spine1 Gi1", uplink: true }
+  - { name: GigabitEthernet2, description: "host1" }

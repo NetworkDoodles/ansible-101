@@ -10,10 +10,25 @@
   gather_facts: false
 
   tasks:
-    # TODO 4.1b  (follow along) Loop over `interfaces`: for each one, cisco.ios.ios_interfaces with its name,
-    #            its description and enabled: true (that's `no shutdown`). Label the loop with item.name.
+    - name: Description and no shutdown, one port at a time
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "{{ item.description }}"
+            enabled: true
+      loop: "{{ interfaces }}"
+      loop_control:
+        label: "{{ item.name }}"
 
-    # TODO 4.1d  (challenge) A second loop that sets mtu: 9100, but only `when` the port is an uplink.
+    - name: Jumbo MTU on uplinks only
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            mtu: 9100
+      loop: "{{ interfaces }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: item.uplink | default(false)
 
     # TODO 5.2a  (follow along) Tag the first task `descriptions`.
     # TODO 5.2b  (challenge) Tag the second task `mtu`.
