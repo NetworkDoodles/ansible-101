@@ -10,11 +10,15 @@
   gather_facts: false
 
   tasks:
-    # TODO 3.1d  (follow along) Configure NTP from the ntp_servers variable, with cisco.ios.ios_ntp_global:
-    #              config: { servers: "{{ ntp_servers }}" }
+    - name: NTP servers, from group_vars
+      cisco.ios.ios_ntp_global:
+        config:
+          servers: "{{ ntp_servers }}"
 
-    # TODO 3.1e  (challenge) Set the location from the location variable, with cisco.ios.ios_config:
-    #              snmp-server location <the location>
+    - name: Where the switch lives, from host_vars
+      cisco.ios.ios_config:
+        lines:
+          - "snmp-server location {{ location }}"
 
     # TODO 5.1a  (follow along) The NTP task: notify a handler that saves the running config.
     # TODO 5.1c  (challenge) The location task notifies it too.
