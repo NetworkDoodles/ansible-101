@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Network Doodles
+  description: Base config for the lab's switches
+  license: MIT
+  min_ansible_version: "2.16"
+dependencies: []

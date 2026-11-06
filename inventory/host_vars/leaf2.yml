@@ -1,6 +1,8 @@
 ---
 # Facts that belong to leaf2 alone.
 location: Row A, rack 3
+# Only leaf2. Beats group_vars/leaves.yml, which beats the role's default.
+base_motd_text: "leaf2: the lab's test leaf. Expect changes."
 interfaces:
   - { name: GigabitEthernet1, description: "to spine1 Gi2", uplink: true }
   - { name: GigabitEthernet2, description: "host2" }
