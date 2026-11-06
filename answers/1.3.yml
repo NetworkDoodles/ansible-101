@@ -1,12 +1,9 @@
 ---
-# Task 1.3 · Ask the switches. Fill these in from what your ad-hoc commands print.
-#
-# TODO 1.3a  (follow along) Each switch's software version: the `Version` in `show version`.
-# TODO 1.3b  (challenge) leaf1's serial number: the `Processor board ID` in leaf1's `show version`.
+# Task 1.3 · Ask the switches. Filled in from what `show version` printed.
 spine1:
-  version:
+  version: "0.1.2"
 leaf1:
-  version:
-  serial:
+  version: "0.1.2"
+  serial: CAPEQ3I7EKD
 leaf2:
-  version:
+  version: "0.1.2"
