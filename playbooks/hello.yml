@@ -9,15 +9,23 @@
   gather_facts: false
 
   tasks:
-    # TODO 2.1a  (follow along) Who to call: with cisco.ios.ios_config, the config line
-    #              snmp-server contact netops@networkdoodles.com
+    - name: Who to call
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server contact netops@networkdoodles.com
 
-    # TODO 2.1b  (challenge) A second task: the login banner, exactly
-    #              Managed by Ansible - Network Doodles lab
-    #            Module cisco.ios.ios_banner: banner: login, text: "...", state: present
+    - name: Login banner
+      cisco.ios.ios_banner:
+        banner: login
+        text: "Managed by Ansible - Network Doodles lab"
+        state: present
 
-    # TODO 2.2a  (follow along) Preview with --check -v, then apply: the domain the switches live in.
-    #              ip domain name lab.networkdoodles.com
+    - name: The domain the switches live in
+      cisco.ios.ios_config:
+        lines:
+          - ip domain name lab.networkdoodles.com
 
-    # TODO 2.2b  (challenge) Preview, then apply: turn on LLDP, so each switch learns its neighbors.
-    #              lldp run
+    - name: LLDP, so each switch learns its neighbors
+      cisco.ios.ios_config:
+        lines:
+          - lldp run
