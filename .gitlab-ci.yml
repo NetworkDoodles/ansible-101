@@ -26,6 +26,10 @@ placeholder:
 default:
   image: python:3.13-slim
   before_script:
+    # Chapter 7 points ansible.cfg at .vault-pass, which is never committed. In your own project, set
+    # VAULT_PASSWORD as a masked CI/CD variable. Lint and syntax checks never decrypt anything, so without
+    # it a placeholder is enough.
+    - echo "${VAULT_PASSWORD:-not-needed-for-lint}" > .vault-pass
     - pip install -q -r requirements.txt
     - ansible-galaxy collection install -r requirements.yml > /dev/null
 
