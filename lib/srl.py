@@ -40,6 +40,10 @@ class SRL:
                 return None
             raise
 
+    def set(self, commands):
+        """One transaction: a list of {"action": "update"|"replace"|"delete", "path": ..., "value": ...}."""
+        return self._call("set", {"commands": commands})
+
     def delete(self, path):
         """Remove the config at a path (the checker uses this to make a handler fire)."""
         return self._call("set", {"commands": [{"action": "delete", "path": path}]})
