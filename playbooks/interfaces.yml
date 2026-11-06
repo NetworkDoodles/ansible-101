@@ -19,6 +19,7 @@
       loop: "{{ interfaces }}"
       loop_control:
         label: "{{ item.name }}"
+      tags: [descriptions]
 
     - name: Jumbo MTU on uplinks only
       cisco.ios.ios_interfaces:
@@ -29,6 +30,4 @@
       loop_control:
         label: "{{ item.name }}"
       when: item.uplink | default(false)
-
-    # TODO 5.2a  (follow along) Tag the first task `descriptions`.
-    # TODO 5.2b  (challenge) Tag the second task `mtu`.
+      tags: [mtu]
