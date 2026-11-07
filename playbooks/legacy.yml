@@ -1,16 +1,16 @@
 ---
 # Task 8.2 · A playbook someone wrote years ago. It works; ansible-lint has opinions.
-#
-# TODO 8.2  Run ansible-lint and fix every problem it reports in this file. Don't silence the rules.
-#           (follow along: the first three, in the guide. challenge: the rest.)
-- hosts: fabric
-  gather_facts: no
+- name: Show what each switch is running
+  hosts: fabric
+  gather_facts: false
 
   tasks:
-  - cisco.ios.ios_command:
-      commands:
-        - show version
-    register: Version
+    - name: Ask for the software version
+      cisco.ios.ios_command:
+        commands:
+          - show version
+      register: version
 
-  - debug:
-      msg: "{{inventory_hostname}}: {{ Version.stdout_lines[0][0] }}"
+    - name: Show it
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: {{ version.stdout_lines[0][0] }}"

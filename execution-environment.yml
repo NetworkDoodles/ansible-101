@@ -17,6 +17,6 @@ dependencies:
   # network_cli's SSH library, the same one requirements.txt installs in the venv.
   python:
     - ansible-pylibssh==1.4.0
-  # TODO 8.1a  (follow along) The collections: point `galaxy` at the same requirements.yml the venv uses.
+  galaxy: requirements.yml
 options:
   package_manager_path: /usr/bin/dnf5
