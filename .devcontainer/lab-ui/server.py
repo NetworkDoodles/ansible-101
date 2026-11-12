@@ -72,13 +72,15 @@ def network():
     if not net:
         return None
     try:
-        r = subprocess.run(["docker", "ps", "-q", "--filter", "label=" + net.get("label", f"containerlab={net['name']}")],
+        r = subprocess.run(["docker", "ps", "--format", "{{.Names}}", "--filter", "label=" + net.get("label", f"containerlab={net['name']}")],
                            capture_output=True, text=True, timeout=5)
     except (OSError, subprocess.TimeoutExpired):
         return {"docker": False, "running": 0, "total": net["nodes"], "what": net.get("what")}
     if r.returncode != 0:                    # Docker inside the dev container is still starting
         return {"docker": False, "running": 0, "total": net["nodes"], "what": net.get("what")}
-    return {"docker": True, "running": len(r.stdout.split()), "total": net["nodes"], "what": net.get("what")}
+    # containerlab gives each SR Linux node a <name>-netns helper with the same label: it isn't a node
+    running = [n for n in r.stdout.split() if not n.endswith("-netns")]
+    return {"docker": True, "running": len(running), "total": net["nodes"], "what": net.get("what")}
 
 
 def progress():
