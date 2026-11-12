@@ -19,7 +19,8 @@ pkill -x caddy 2>/dev/null || true
 # setsid + nohup: both keep running after the dev container's start command returns.
 setsid nohup python3 "$HERE/server.py" > "$RUN/api.log" 2>&1 < /dev/null &
 setsid nohup caddy run --config "$RUN/Caddyfile" --adapter caddyfile > "$RUN/caddy.log" 2>&1 < /dev/null &
-for i in $(seq 1 20); do
+# Up to a minute: on a restart the codespace is also starting Docker and the network, and Caddy can take 30 s.
+for i in $(seq 1 120); do
   answering && { echo "lab app on port 8000"; exit 0; }
   sleep 0.5
 done
