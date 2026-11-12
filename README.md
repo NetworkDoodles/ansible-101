@@ -130,7 +130,7 @@ lib/            a small client the checker uses to read the switches' CLI
 
 ## Versions
 
-CapeOS Bolt 0.1.2, containerlab 0.82, ansible-core 2.20.1, cisco.ios 11.6.0, ansible.netcommon 8.7.1,
+CapeOS Bolt 0.11.0, containerlab 0.82, ansible-core 2.20.1, cisco.ios 11.6.0, ansible.netcommon 8.7.1,
 ansible-pylibssh 1.4.0, ansible-lint 26.10.1, ansible-navigator 26.10.0.
 
 ---

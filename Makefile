@@ -57,7 +57,7 @@ docker-ready:
 	@for i in $$(seq 1 60); do docker info >/dev/null 2>&1 && exit 0; [ $$i = 1 ] && echo "  waiting for Docker to start ..."; sleep 2; done; \
 	echo "Docker isn't answering. In the dev container it starts on its own; on a laptop, start Docker Desktop."; exit 1
 
-BOLT := ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+BOLT := ghcr.io/dkhenderson2/capeos-bolt:0.11.0
 images: docker-ready ## pull the switch images (the dev container does this once)
 	docker pull -q $(BOLT)
 	docker pull -q alpine:3.22

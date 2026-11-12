@@ -17,13 +17,13 @@
   "topology": {
     "hint": "Your playbooks reach these switches from the VS Code tab. Click one for its CLI, in a tab of its own; hover for its details.",
     "nodes": [
-      {"id": "spine1", "icon": "switch", "x": 300, "y": 0, "sub": "spine", "what": "The spine: both leaves connect to it."},
-      {"id": "leaf1", "icon": "switch", "x": 100, "y": 180, "sub": "leaf", "what": "A leaf switch, with host1 behind it."},
-      {"id": "leaf2", "icon": "switch", "x": 500, "y": 180, "sub": "leaf", "what": "A leaf switch, with host2 behind it."},
-      {"id": "host1", "icon": "pc", "x": 100, "y": 360, "sub": "host", "what": "A Linux host on leaf1.", "details": [["runs", "Linux"]]},
-      {"id": "host2", "icon": "pc", "x": 500, "y": 360, "sub": "host", "what": "A Linux host on leaf2.", "details": [["runs", "Linux"]]}
+      {"id": "spine1", "icon": "switch", "x": 300, "y": 0, "sub": "spine", "what": "The spine: both leaves connect to it.", "details": [["runs", "CapeOS Bolt: a lab network OS with an IOS-style CLI"], ["management", "spine1 · 172.80.81.10"], ["port names", "ethN is GigabitEthernetN in its CLI"]]},
+      {"id": "leaf1", "icon": "switch", "x": 100, "y": 180, "sub": "leaf", "what": "A leaf switch, with host1 behind it.", "details": [["runs", "CapeOS Bolt: a lab network OS with an IOS-style CLI"], ["management", "leaf1 · 172.80.81.11"], ["port names", "ethN is GigabitEthernetN in its CLI"]]},
+      {"id": "leaf2", "icon": "switch", "x": 500, "y": 180, "sub": "leaf", "what": "A leaf switch, with host2 behind it.", "details": [["runs", "CapeOS Bolt: a lab network OS with an IOS-style CLI"], ["management", "leaf2 · 172.80.81.12"], ["port names", "ethN is GigabitEthernetN in its CLI"]]},
+      {"id": "host1", "icon": "pc", "x": 100, "y": 360, "sub": "host", "what": "A Linux host on leaf1.", "details": [["runs", "Linux"], ["management", "172.80.81.21"]]},
+      {"id": "host2", "icon": "pc", "x": 500, "y": 360, "sub": "host", "what": "A Linux host on leaf2.", "details": [["runs", "Linux"], ["management", "172.80.81.22"]]}
     ],
-    "links": [["spine1:e1-1", "leaf1:e1-49"], ["spine1:e1-2", "leaf2:e1-49"], ["leaf1:e1-1", "host1:eth1"], ["leaf2:e1-1", "host2:eth1"]]
+    "links": [["spine1:eth1", "leaf1:eth1"], ["spine1:eth2", "leaf2:eth1"], ["leaf1:eth2", "host1:eth1"], ["leaf2:eth2", "host2:eth1"]]
   },
   "tabs": [
     {"id": "code", "name": "VS Code", "path": "/code/", "port": 13337, "strip": true},

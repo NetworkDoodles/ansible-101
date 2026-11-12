@@ -38,17 +38,17 @@ topology:
     # Each switch boots from a copy of lab/configs/<switch>.cfg (`make up` makes the copies), so
     # `write memory` saves into build/startup/, never into a file Git tracks.
     spine1:
-      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.11.0
       mgmt-ipv4: 172.80.81.10
       binds: [../build/startup/spine1.cfg:/flash/startup-config]
       labels: { graph-icon: switch, graph-level: "1" }
     leaf1:
-      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.11.0
       mgmt-ipv4: 172.80.81.11
       binds: [../build/startup/leaf1.cfg:/flash/startup-config]
       labels: { graph-icon: switch, graph-level: "2" }
     leaf2:
-      image: ghcr.io/dkhenderson2/capeos-bolt:0.1.2
+      image: ghcr.io/dkhenderson2/capeos-bolt:0.11.0
       mgmt-ipv4: 172.80.81.12
       binds: [../build/startup/leaf2.cfg:/flash/startup-config]
       labels: { graph-icon: switch, graph-level: "2" }
