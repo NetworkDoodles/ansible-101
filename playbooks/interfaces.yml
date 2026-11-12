@@ -1,31 +1,31 @@
 ---
 # Chapters 4 and 5 · Interfaces from data.
 #
-# Each switch's ports are listed in host_vars/<switch>.yml. One task loops over that list, so adding a
-# port is a change to data, never to the playbook.
+# Each switch's ports are listed in inventory/host_vars/<switch>.yml. One task loops over that list, so
+# adding a port is a change to data, never to the playbook.
+#
+#   make run T=4.1        then        make check T=4.1
 - name: Interfaces
   hosts: fabric
   gather_facts: false
 
   tasks:
-    - name: Description and admin state, one port at a time
-      nokia.srlinux.config:
-        update:
-          - path: "/interface[name={{ item.name }}]"
-            value:
-              description: "{{ item.description }}"
-              admin-state: enable
+    - name: Description and no shutdown, one port at a time
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "{{ item.description }}"
+            enabled: true
       loop: "{{ interfaces }}"
       loop_control:
         label: "{{ item.name }}"
       tags: [descriptions]
 
     - name: Jumbo MTU on uplinks only
-      nokia.srlinux.config:
-        update:
-          - path: "/interface[name={{ item.name }}]"
-            value:
-              mtu: 9100
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            mtu: 9100
       loop: "{{ interfaces }}"
       loop_control:
         label: "{{ item.name }}"

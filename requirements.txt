@@ -6,6 +6,7 @@ yamllint==1.38.0
 # chapter 8
 ansible-navigator==26.10.0
 ansible-builder==3.2.0
-# the checker talks to the switches' JSON-RPC API directly
-requests==2.32.5
+# The SSH library network_cli uses to hold a session to each switch
+ansible-pylibssh==1.4.0
+# the checker reads YAML files
 pyyaml==6.0.3

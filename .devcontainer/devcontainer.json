@@ -1,6 +1,6 @@
 {
   // Network Doodles lab environment · Ansible 101 for networking.
-  // Everything runs inside this one container: its own Docker engine (the SR Linux switches live in
+  // Everything runs inside this one container: its own Docker engine (the CapeOS switches live in
   // there), containerlab, Ansible, Python, and a browser IDE.
   //
   //   The site    "Open the lab" on the guide page: the lab app in a codespace, no editor (labs.networkdoodles.com)
@@ -10,7 +10,7 @@
   "build": { "dockerfile": "Dockerfile", "context": ".." },
   "privileged": true,
   "remoteUser": "vscode",
-  "hostRequirements": { "cpus": 4, "memory": "8gb" },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
   // Codespaces checks the repo out into a world-writable folder, and Ansible won't read ansible.cfg from
   // one. Naming it explicitly makes every terminal pick it up.
   "containerEnv": { "ANSIBLE_CONFIG": "${containerWorkspaceFolder}/ansible.cfg" },

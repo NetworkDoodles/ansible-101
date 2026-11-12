@@ -1,33 +1,29 @@
 ---
 # Chapters 3 and 5 · The base config every switch gets: NTP and where it lives.
 #
-# Nothing in here is specific to one switch. The values come from group_vars/fabric.yml and
-# host_vars/<switch>.yml, so the same play configures every switch differently.
+# Nothing in here names a switch. The values come from inventory/group_vars/fabric.yml and
+# inventory/host_vars/<switch>.yml, so one play configures every switch differently.
+#
+#   make run T=3.1        then        make check T=3.1
 - name: Base config
   hosts: fabric
   gather_facts: false
 
   tasks:
     - name: NTP servers, from group_vars
-      nokia.srlinux.config:
-        update:
-          - path: /system/ntp
-            value:
-              admin-state: enable
-              network-instance: mgmt
-              server: "{{ ntp_servers }}"
+      cisco.ios.ios_ntp_global:
+        config:
+          servers: "{{ ntp_servers }}"
       notify: Save the running config
 
     - name: Where the switch lives, from host_vars
-      nokia.srlinux.config:
-        update:
-          - path: /system/information
-            value:
-              location: "{{ location }}"
+      cisco.ios.ios_config:
+        lines:
+          - "snmp-server location {{ location }}"
       notify: Save the running config
 
   handlers:
     - name: Save the running config
-      nokia.srlinux.cli:
+      cisco.ios.ios_command:
         commands:
-          - save startup
+          - write memory

@@ -1,8 +1,0 @@
----
-# Facts that belong to spine1 alone. Anything here beats the same variable in group_vars/.
-location: Row A, rack 1
-
-# Chapter 4 · spine1's ports, as data. The leaves need theirs (TODO 4.1a in their files).
-interfaces:
-  - { name: ethernet-1/1, description: "to leaf1 ethernet-1/49", uplink: true }
-  - { name: ethernet-1/2, description: "to leaf2 ethernet-1/49", uplink: true }

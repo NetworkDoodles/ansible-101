@@ -1,5 +1,6 @@
 ---
+# Facts that belong to leaf1 alone.
 location: Row A, rack 2
 interfaces:
-  - { name: ethernet-1/1, description: "host1" }
-  - { name: ethernet-1/49, description: "to spine1 ethernet-1/1", uplink: true }
+  - { name: GigabitEthernet1, description: "to spine1 Gi1", uplink: true }
+  - { name: GigabitEthernet2, description: "host1" }

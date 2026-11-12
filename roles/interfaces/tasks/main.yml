@@ -1,23 +1,21 @@
 ---
 # Each switch's ports, from host_vars/<switch>.yml.
-- name: Description and admin state
-  nokia.srlinux.config:
-    update:
-      - path: "/interface[name={{ item.name }}]"
-        value:
-          description: "{{ item.description }}"
-          admin-state: enable
+- name: Description and no shutdown
+  cisco.ios.ios_interfaces:
+    config:
+      - name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        enabled: true
   loop: "{{ interfaces }}"
   loop_control:
     label: "{{ item.name }}"
   tags: [descriptions]
 
 - name: Jumbo MTU on uplinks only
-  nokia.srlinux.config:
-    update:
-      - path: "/interface[name={{ item.name }}]"
-        value:
-          mtu: 9100
+  cisco.ios.ios_interfaces:
+    config:
+      - name: "{{ item.name }}"
+        mtu: 9100
   loop: "{{ interfaces }}"
   loop_control:
     label: "{{ item.name }}"

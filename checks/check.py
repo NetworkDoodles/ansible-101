@@ -1,8 +1,9 @@
 """make check T=2.1 · CH=2 · (nothing)  ·  verifies a task, a chapter or the whole lab.
 
-Every check reads real state: the switches through their JSON-RPC API (not through Ansible, so a broken
-playbook can't hide a broken check), the files you wrote, and the output of your playbooks. The only
-checks that change anything re-run a playbook that should change nothing the second time.
+Every check reads real state: the switches through their own CLI (`docker exec <switch> capeos-cli`, not
+through Ansible, so a broken playbook can't hide a broken check), the files you wrote, and the output of
+your playbooks. The only checks that change anything re-run a playbook that should change nothing the
+second time, or undo a setting so a handler has something to do.
 
     python checks/check.py 2.1          one task
     python checks/check.py ch2          one chapter
@@ -17,7 +18,7 @@ import sys
 import pathlib
 
 sys.path.insert(0, pathlib.Path(__file__).resolve().parents[1].as_posix())
-from lib.srl import ROOT, SRL, SWITCHES, PASSWORD, load  # noqa: E402
+from lib.bolt import ROOT, Bolt, Running, SWITCHES, PASSWORD, load  # noqa: E402
 
 GUIDE = "https://networkdoodles.com/labs/ansible-101"
 BIN = pathlib.Path(sys.executable).parent
@@ -25,7 +26,10 @@ TTY = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 C = {k: (v if TTY else "") for k, v in dict(g="\033[32m", r="\033[31m", y="\033[33m", c="\033[36m", d="\033[2m", b="\033[1m", x="\033[0m").items()}
 NOISE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 LEAVES, SPINES = ["leaf1", "leaf2"], ["spine1"]
-BANNER = "Managed by Ansible · Network Doodles lab"
+BANNER = "Managed by Ansible - Network Doodles lab"
+CONTACT = "netops@networkdoodles.com"
+DOMAIN = "lab.networkdoodles.com"
+UPLINK = "GigabitEthernet1"   # each leaf's port to spine1
 
 
 def ansible(*args, env=None):
@@ -61,11 +65,18 @@ def idempotent(path):
     yield code == 0 and changed == 0, f"a second run of {path} changes nothing (changed={changed})"
 
 
-def get(sw, path, datastore="running"):
+def running(sw):
     try:
-        return SRL(sw).get(path, datastore)
+        return Bolt(sw).running()
     except Exception:
         return None
+
+
+def version(sw):
+    try:
+        return Bolt(sw).version()
+    except Exception:
+        return None, None
 
 
 def inventory():
@@ -80,12 +91,12 @@ def inventory():
 def t1_1():
     from importlib import metadata
     yield True, f"ansible-core {metadata.version('ansible-core')} is installed"
-    code, out = ansible("ansible-galaxy", "collection", "list", "nokia.srlinux")
-    m = re.search(r"nokia\.srlinux\s+(\S+)", out)
-    yield m is not None, f"the nokia.srlinux collection is installed ({m.group(1) if m else 'missing: make setup'})"
+    code, out = ansible("ansible-galaxy", "collection", "list", "cisco.ios")
+    m = re.search(r"cisco\.ios\s+(\S+)", out)
+    yield m is not None, f"the cisco.ios collection is installed ({m.group(1) if m else 'missing: make setup'})"
     for sw in SWITCHES:
-        v = get(sw, "/system/information/version", "state")
-        yield v is not None, f"{sw} answers its API" + (f" (SR Linux {v.split('-')[0]})" if v else ": make up")
+        v, _ = version(sw)
+        yield v is not None, f"{sw} answers" + (f" (CapeOS Bolt {v})" if v else ": make up")
 
 
 def t1_2():
@@ -98,44 +109,43 @@ def t1_2():
     yield hosts("leaves") == LEAVES, f"group leaves is [leaf1, leaf2] (got {hosts('leaves')})"
     children = sorted(inv.get("fabric", {}).get("children", []))
     yield children == ["leaves", "spines"], f"group fabric holds leaves and spines (got {children})"
-    code, out = ansible("ansible", "fabric", "-m", "nokia.srlinux.get",
-                        "-a", '{"paths": [{"path": "/system/name/host-name", "datastore": "state"}]}')
+    code, out = ansible("ansible", "fabric", "-m", "cisco.ios.ios_command", "-a", "commands='show version'")
     reached = re.findall(r"^(\S+) \| SUCCESS", out, re.M)
-    yield sorted(reached) == sorted(SWITCHES), f"Ansible reaches all three switches ({len(reached)}/3)"
+    yield sorted(reached) == sorted(SWITCHES), f"Ansible reaches all three switches over SSH ({len(reached)}/3)"
 
 
 def t1_3():
     ans = load("answers/1.3.yml") or {}
     for sw in SWITCHES:
-        want = get(sw, "/system/information/version", "state")
+        want, _ = version(sw)
         got = str((ans.get(sw) or {}).get("version", ""))
         yield bool(want) and got == want, f"answers/1.3.yml has {sw}'s software version" + ("" if got == want else f" (got {got or 'nothing'})")
-    want = get("leaf1", "/platform/chassis/serial-number", "state")
+    _, want = version("leaf1")
     got = str(ans.get("leaf1", {}).get("serial", "")) if isinstance(ans.get("leaf1"), dict) else ""
-    yield bool(want) and got == want, f"and leaf1's chassis serial number" + ("" if got == want else f" (got {got or 'nothing'})")
+    yield bool(want) and got == want, "and leaf1's serial number" + ("" if got == want else f" (got {got or 'nothing'})")
 
 
 # ── chapter 2 · your first playbook ────────────────────────────────────────────
 def t2_1():
     yield from playbook_ok("playbooks/hello.yml")
     for sw in SWITCHES:
-        b = get(sw, "/system/banner/login-banner")
-        yield b == BANNER, f"{sw} shows the login banner" + ("" if b == BANNER else f" (got {b!r})")
+        contact = (running(sw) or Running("")).line("snmp-server contact")
+        yield contact == CONTACT, f"{sw} has its contact: snmp-server contact {contact or '(missing)'}"
     for sw in SWITCHES:
-        contact = get(sw, "/system/information/contact")
-        yield bool(contact) and "@" in str(contact), f"the challenge: {sw} has a contact email (got {contact!r})"
+        b = (running(sw) or Running("")).banner("login")
+        yield b == BANNER, f"the challenge: {sw} shows the login banner" + ("" if b == BANNER else f" (got {b!r})")
     yield from idempotent("playbooks/hello.yml")
 
 
 def t2_2():
     for sw in SWITCHES:
-        domain = get(sw, "/system/name/domain-name")
-        yield domain == "lab.networkdoodles.com", f"{sw} domain is lab.networkdoodles.com (got {domain!r})"
-        tz = get(sw, "/system/clock/timezone")
-        yield tz == "America/New_York", f"the challenge: {sw}'s timezone is America/New_York (got {tz!r})"
-    code, out = ansible("ansible-playbook", "playbooks/hello.yml", "--check", "--diff")
+        cfg = running(sw) or Running("")
+        domain = cfg.line("ip domain name")
+        yield domain == DOMAIN, f"{sw}: ip domain name {domain or '(missing)'}"
+        yield cfg.line("lldp run") is not None, f"the challenge: {sw} runs LLDP (lldp run)"
+    code, out = ansible("ansible-playbook", "playbooks/hello.yml", "--check")
     r = recap(out)
-    yield code == 0 and r and sum(v["changed"] for v in r.values()) == 0, "--check --diff runs and finds nothing left to change"
+    yield code == 0 and r and sum(v["changed"] for v in r.values()) == 0, "--check runs and finds nothing left to change"
 
 
 # ── chapter 3 · variables and facts ────────────────────────────────────────────
@@ -143,19 +153,18 @@ def t3_1():
     inv_text = (ROOT / "inventory/hosts.yml").read_text() if (ROOT / "inventory/hosts.yml").exists() else ""
     yield "ansible_" not in inv_text, "inventory/hosts.yml only lists hosts: connection settings moved to group_vars"
     gv = load("inventory/group_vars/fabric.yml") or {}
-    yield gv.get("ansible_connection") == "ansible.netcommon.httpapi", "inventory/group_vars/fabric.yml holds the connection settings"
-    want_ntp = sorted(str(n.get("address")) for n in (gv.get("ntp_servers") or []) if isinstance(n, dict))
+    yield gv.get("ansible_connection") == "ansible.netcommon.network_cli", "inventory/group_vars/fabric.yml holds the connection settings"
+    want_ntp = sorted(str(n.get("server")) for n in (gv.get("ntp_servers") or []) if isinstance(n, dict))
     yield len(want_ntp) == 2, f"inventory/group_vars/fabric.yml lists two ntp_servers (got {want_ntp})"
     yield from playbook_ok("playbooks/base.yml")
     for sw in SWITCHES:
-        servers = (get(sw, "/system/ntp") or {}).get("server") or []
-        got = sorted(s.get("address") for s in servers)
-        yield got == want_ntp and want_ntp, f"{sw} uses the NTP servers from group_vars (got {got})"
+        got = sorted((running(sw) or Running("")).lines("ntp server"))
+        yield want_ntp and set(want_ntp) <= set(got), f"{sw} uses the NTP servers from group_vars (got {got})"
     for sw in SWITCHES:
         hv = load(f"inventory/host_vars/{sw}.yml") or {}
         want = hv.get("location")
-        got = get(sw, "/system/information/location")
-        yield bool(want) and got == want, f"{sw}'s location comes from inventory/host_vars/{sw}.yml ({got!r})"
+        got = (running(sw) or Running("")).line("snmp-server location")
+        yield bool(want) and got == want, f"the challenge: {sw}'s location comes from inventory/host_vars/{sw}.yml ({got!r})"
     yield from idempotent("playbooks/base.yml")
 
 
@@ -163,10 +172,9 @@ def t3_2():
     yield from playbook_ok("playbooks/facts.yml")
     for sw in SWITCHES:
         facts = load(f"build/facts/{sw}.yml") or {}
-        want_v = get(sw, "/system/information/version", "state")
-        want_s = get(sw, "/platform/chassis/serial-number", "state")
+        want_v, want_s = version(sw)
         yield facts.get("version") == want_v and facts.get("serial") == want_s, \
-            f"build/facts/{sw}.yml has its real version and serial"
+            f"the challenge: build/facts/{sw}.yml has its real version and serial"
 
 
 # ── chapter 4 · loops, conditionals, templates ─────────────────────────────────
@@ -175,13 +183,13 @@ def t4_1():
     for sw in SWITCHES:
         want = (load(f"inventory/host_vars/{sw}.yml") or {}).get("interfaces") or []
         yield len(want) >= 1, f"inventory/host_vars/{sw}.yml lists its interfaces ({len(want)})"
+        cfg = running(sw) or Running("")
         for i in want:
-            d = get(sw, f"/interface[name={i['name']}]/description")
-            a = get(sw, f"/interface[name={i['name']}]/admin-state")
-            yield d == i.get("description") and a == "enable", f"{sw} {i['name']}: '{i.get('description')}', enabled (got {d!r}, {a})"
+            p = cfg.port(i["name"])
+            yield p["description"] == i.get("description") and p["enabled"], \
+                f"{sw} {i['name']}: '{i.get('description')}', no shutdown (got {p['description']!r}, {'up' if p['enabled'] else 'shutdown'})"
             if i.get("uplink"):
-                mtu = get(sw, f"/interface[name={i['name']}]/mtu")
-                yield mtu == 9100, f"{sw} {i['name']} is an uplink, so MTU 9100 (got {mtu})"
+                yield p["mtu"] == 9100, f"{sw} {i['name']} is an uplink, so mtu 9100 (got {p['mtu']})"
     yield from idempotent("playbooks/interfaces.yml")
 
 
@@ -190,29 +198,29 @@ def t4_2():
     report = (ROOT / "build/fabric-report.md").read_text() if (ROOT / "build/fabric-report.md").exists() else ""
     yield bool(report), "build/fabric-report.md exists"
     for sw in SWITCHES:
-        v = get(sw, "/system/information/version", "state") or "?"
-        yield bool(re.search(rf"\|\s*{sw}\s*\|.*{re.escape(v.split('-')[0])}", report)), f"the report has a row for {sw} with its version"
-    yield "uplink" in report.lower(), "uplinks are marked (the `when` / `if` part)"
+        v = version(sw)[0] or "?"
+        yield bool(re.search(rf"\|\s*{sw}\s*\|.*{re.escape(v)}", report)), f"the report has a row for {sw} with its version"
+    yield "uplink" in report.lower(), "the challenge: uplinks are marked (the `if` part)"
 
 
 # ── chapter 5 · handlers, tags, errors ─────────────────────────────────────────
 def t5_1():
     # Your switches already have NTP from chapter 3, so a run would change nothing and the handler would
     # never fire. Take NTP away first: the next run has something to change.
+    ntp = [str(n["server"]) for n in (load("inventory/group_vars/fabric.yml") or {}).get("ntp_servers") or []]
     for sw in SWITCHES:
-        SRL(sw).delete("/system/ntp")
+        Bolt(sw).configure(*[f"no ntp server {a}" for a in (running(sw) or Running("")).lines("ntp server")])
     code, out = ansible("ansible-playbook", "playbooks/base.yml")
     yield code == 0, "playbooks/base.yml runs cleanly (the checker removed NTP first, so there's a change)"
     yield "RUNNING HANDLER" in out, "something changed, so the save handler ran"
     yield out.count("RUNNING HANDLER") == 1, "and it ran once, at the end, not once per task"
-    ntp = [n["address"] for n in (load("inventory/group_vars/fabric.yml") or {}).get("ntp_servers") or []]
     for sw in SWITCHES:
-        p = subprocess.run(["docker", "exec", sw, "cat", "/etc/opt/srlinux/config.json"], capture_output=True, text=True)
-        yield bool(ntp) and all(a in p.stdout for a in ntp), f"{sw}'s startup config has the NTP servers: the handler saved it"
+        saved = Bolt(sw).startup().lines("ntp server")
+        yield bool(ntp) and set(ntp) <= set(saved), f"{sw}'s startup-config has the NTP servers: the handler saved it"
     code, out = ansible("ansible-playbook", "playbooks/base.yml")
     yield code == 0 and "RUNNING HANDLER" not in out, "a second run changes nothing, so the handler stays quiet"
     # The challenge: the location task notifies the handler too. Move leaf1, and only the location changes.
-    SRL("leaf1").set([{"action": "update", "path": "/system/information", "value": {"location": "moved by the checker"}}])
+    Bolt("leaf1").configure("snmp-server location moved by the checker")
     code, out = ansible("ansible-playbook", "playbooks/base.yml")
     yield code == 0 and "RUNNING HANDLER" in out, "the challenge: a location change alone also runs the save handler"
 
@@ -237,8 +245,8 @@ def t5_3():
     yield code == 0, "playbooks/safe_change.yml finishes, even though its change fails"
     yield "rescue" in out.lower() or (r and all(v.get("failed", 0) == 0 for v in r.values())), "the rescue section ran"
     for sw in LEAVES:
-        mtu = get(sw, "/interface[name=ethernet-1/49]/mtu")
-        yield mtu == 9100, f"{sw} ethernet-1/49 is back to its known-good MTU 9100 (got {mtu})"
+        mtu = (running(sw) or Running("")).port(UPLINK)["mtu"]
+        yield mtu == 9100, f"{sw} {UPLINK} is back to its known-good mtu 9100 (got {mtu})"
     play = (load("playbooks/safe_change.yml") or [{}])[0]
     blocks = [t for t in play.get("tasks") or [] if isinstance(t, dict) and "block" in t]
     yield blocks and blocks[0].get("always"), "the challenge: the block has an always section"
@@ -262,20 +270,20 @@ def t6_2():
     own = (load("inventory/host_vars/leaf2.yml") or {}).get("base_motd_text")
     yield bool(own) and own != want, "the challenge: inventory/host_vars/leaf2.yml gives leaf2 a message of its own"
     yield from playbook_ok("playbooks/site.yml")
-    got = get("leaf1", "/system/banner/motd-banner")
+    got = (running("leaf1") or Running("")).banner("motd")
     yield got == want, f"leaf1 shows the leaves' message of the day (got {got!r})"
-    got = get("leaf2", "/system/banner/motd-banner")
+    got = (running("leaf2") or Running("")).banner("motd")
     yield bool(own) and got == own, f"leaf2 shows its own: host_vars beats group_vars (got {got!r})"
     default = (load("roles/base/defaults/main.yml") or {}).get("base_motd_text")
-    got = get("spine1", "/system/banner/motd-banner")
+    got = (running("spine1") or Running("")).banner("motd")
     yield bool(default) and got == default, f"spine1 keeps the role's default (got {got!r})"
 
 
 # ── chapter 7 · secrets ────────────────────────────────────────────────────────
 def t7_1():
     tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True).stdout.split()
-    # The README documents the lab login on purpose; the checker and lab scripts need it to reach the switches.
-    leaks = [f for f in tracked if not f.startswith(("lib/", "checks/", "lab/", ".maint/", "docs/", "README"))
+    # The README documents the lab login on purpose, and the lab's own files set it on the switches.
+    leaks = [f for f in tracked if not f.startswith(("lib/", "checks/", "lab/", "docs/", "README"))
              and (ROOT / f).is_file() and PASSWORD in (ROOT / f).read_text(errors="ignore")]
     yield not leaks, "the switch password isn't in any file you commit" + (f" (found in {', '.join(leaks)})" if leaks else "")
     vault = ROOT / "inventory/group_vars/all/vault.yml"
@@ -321,10 +329,10 @@ TASKS = {
     "1.2": ("write the inventory", ["inventory/hosts.yml"]),
     "1.3": ("ask the switches", ["answers/1.3.yml"]),
     "2.1": ("your first playbook", ["playbooks/hello.yml"]),
-    "2.2": ("check mode and diff", ["playbooks/hello.yml"]),
+    "2.2": ("check mode first", ["playbooks/hello.yml"]),
     "3.1": ("group_vars and host_vars", ["inventory/hosts.yml", "inventory/group_vars/fabric.yml", "inventory/host_vars/spine1.yml",
                                           "inventory/host_vars/leaf1.yml", "inventory/host_vars/leaf2.yml", "playbooks/base.yml"]),
-    "3.2": ("facts and register", ["playbooks/facts.yml"]),
+    "3.2": ("facts", ["playbooks/facts.yml"]),
     "4.1": ("interfaces from data", ["inventory/host_vars/spine1.yml", "inventory/host_vars/leaf1.yml", "inventory/host_vars/leaf2.yml",
                                       "playbooks/interfaces.yml"]),
     "4.2": ("a report from a template", ["playbooks/report.yml", "playbooks/templates/fabric-report.md.j2"]),

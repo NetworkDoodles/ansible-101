@@ -1,11 +1,9 @@
 ---
 # Everything every switch in the fabric shares. Ansible loads this for every host in the `fabric` group.
 
-# How to talk to the switches: SR Linux's JSON-RPC API over HTTPS.
-ansible_connection: ansible.netcommon.httpapi
-ansible_network_os: nokia.srlinux.srlinux
-ansible_httpapi_use_ssl: true
-ansible_httpapi_validate_certs: false   # lab switches have self-signed certificates
+# How to talk to the switches: an SSH session to their CLI, driven by the cisco.ios modules.
+ansible_connection: ansible.netcommon.network_cli
+ansible_network_os: cisco.ios.ios
 ansible_user: admin
 ansible_password: "{{ vault_ansible_password }}"   # from inventory/group_vars/all/vault.yml
 
@@ -19,8 +17,8 @@ snmp_community: !vault |
           3035363631363339320a303165363237343362633961623433353935623939386663633334636137
           6538
 
-# Facts about the fabric that the playbooks turn into config. Shaped like the switch's own model
-# (a list of servers, each with an address), so the playbook can hand it over as it is.
+# Facts about the fabric that the playbooks turn into config. Shaped the way the ios_ntp_global module
+# wants them (a list of servers, each with a `server`), so the playbook can hand it over as it is.
 ntp_servers:
-  - address: 162.159.200.1
-  - address: 162.159.200.123
+  - server: 162.159.200.1
+  - server: 162.159.200.123

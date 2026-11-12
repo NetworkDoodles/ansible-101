@@ -1,25 +1,23 @@
 ---
 # Task 3.2 · Ask each switch about itself, keep the answer, write it down.
 #
-# `register` saves a task's result in a variable; `set_fact` picks out the parts you want.
+# A facts module asks the switch about itself, and its answers land in ansible_facts (net_version, net_serialnum ...).
+# `set_fact` makes new variables of your own from them.
+#
+#   make run T=3.2        then        make check T=3.2
 - name: What the switches say about themselves
   hosts: fabric
   gather_facts: false
 
   tasks:
-    - name: Read system information and the chassis
-      nokia.srlinux.get:
-        paths:
-          - path: /system/information
-            datastore: state
-          - path: /platform/chassis
-            datastore: state
-      register: info
+    - name: Gather the switch's facts
+      cisco.ios.ios_facts:
+        gather_subset: min
 
     - name: Keep the two facts we care about
       ansible.builtin.set_fact:
-        sw_version: "{{ info.result[0].version }}"
-        sw_serial: "{{ info.result[1]['serial-number'] }}"
+        sw_version: "{{ ansible_facts.net_version }}"
+        sw_serial: "{{ ansible_facts.net_serialnum }}"
 
     - name: Show them
       ansible.builtin.debug:

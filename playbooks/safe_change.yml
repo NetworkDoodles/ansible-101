@@ -1,7 +1,7 @@
 ---
 # Task 5.3 · When a change goes wrong halfway.
 #
-# The block makes two changes. The second one fails on purpose (SR Linux rejects an MTU that big).
+# The block makes two changes. The second one fails on purpose (the switch rejects an MTU that big).
 # Without a rescue, leaf1 and leaf2 would be left half-changed. The rescue puts them back.
 - name: A change that fails halfway
   hosts: leaves
@@ -11,39 +11,35 @@
     - name: Change the uplinks, then roll back if anything fails
       block:
         - name: Step 1 · lower the uplink MTU (this works)
-          nokia.srlinux.config:
-            update:
-              - path: /interface[name=ethernet-1/49]
-                value:
-                  mtu: 1500
+          cisco.ios.ios_interfaces:
+            config:
+              - name: GigabitEthernet1
+                mtu: 1500
 
         - name: Step 2 · an MTU no switch supports (this fails)
-          nokia.srlinux.config:
-            update:
-              - path: /interface[name=ethernet-1/49]
-                value:
-                  mtu: 99999
+          cisco.ios.ios_interfaces:
+            config:
+              - name: GigabitEthernet1
+                mtu: 99999
 
       rescue:
         - name: Roll back to the known-good MTU
-          nokia.srlinux.config:
-            update:
-              - path: /interface[name=ethernet-1/49]
-                value:
-                  mtu: 9100
+          cisco.ios.ios_interfaces:
+            config:
+              - name: GigabitEthernet1
+                mtu: 9100
 
         - name: Say what happened
           ansible.builtin.debug:
-            msg: "{{ inventory_hostname }}: rolled back ({{ ansible_failed_result.msg | default('') | truncate(100) }})"
+            msg: "{{ inventory_hostname }}: '{{ ansible_failed_task.name }}' failed, so the MTU is back to 9100"
 
       always:
-        - name: Report the MTU we ended up with
-          nokia.srlinux.get:
-            paths:
-              - path: /interface[name=ethernet-1/49]/mtu
-                datastore: running
-          register: mtu
+        - name: Read the port's config back
+          cisco.ios.ios_command:
+            commands:
+              - show running-config interface GigabitEthernet1
+          register: uplink_config
 
         - name: Show it
           ansible.builtin.debug:
-            msg: "{{ inventory_hostname }} ethernet-1/49 MTU is {{ mtu.result[0] }}"
+            var: uplink_config.stdout_lines[0]

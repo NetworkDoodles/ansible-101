@@ -1,5 +1,5 @@
 ---
 - name: Save the running config
-  nokia.srlinux.cli:
+  cisco.ios.ios_command:
     commands:
-      - save startup
+      - write memory

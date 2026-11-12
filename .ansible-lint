@@ -5,7 +5,6 @@ exclude_paths:
   - build/
   - answers/
   - lab/
-  - .maint/
   - execution-environment.yml
   - ansible-navigator.yml
   - inventory/group_vars/all/vault.yml   # encrypted: nothing to lint

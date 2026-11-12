@@ -2,8 +2,7 @@
 # Defaults: the lowest-precedence variables there are. Anything in group_vars/ or host_vars/ wins, so
 # these are the values a switch gets when nobody said otherwise. Each name starts with the role's
 # name, so two roles can never fight over the same variable.
-base_banner_text: "Managed by Ansible · Network Doodles lab"
+base_banner_text: "Managed by Ansible - Network Doodles lab"
 base_motd_text: "Authorized access only. Changes go through Git."
 base_contact: netops@networkdoodles.com
 base_domain_name: lab.networkdoodles.com
-base_timezone: America/New_York

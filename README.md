@@ -6,7 +6,9 @@ The hands-on companion to the Network Doodles series
 **[Ansible 101 for networking](https://networkdoodles.com/series/ansible-101/)**. One chapter per post.
 
 You'll start with an inventory and an ad-hoc command, and finish with roles, a vaulted password, an
-execution environment and a CI pipeline, all against a real leaf-spine fabric of Nokia SR Linux switches.
+execution environment and a CI pipeline, all against a real leaf-spine fabric of
+CapeOS Bolt switches: a lab network OS with the CLI you already know
+(`show running-config`, `configure terminal`, `interface GigabitEthernet1`).
 Every task has a checker that reads the switches and tells you when you're right.
 
 **Step-by-step guide:** https://networkdoodles.com/labs/ansible-101/
@@ -15,9 +17,9 @@ Every task has a checker that reads the switches and tells you when you're right
 ## Start
 
 **Open the lab** (the link above, or the button on the [guide's page](https://networkdoodles.com/labs/ansible-101/)) and
-sign in with GitHub. It creates your own codespace, on your GitHub account's free allowance (the lab's 4-core
-machine uses well under 20 of its 120 monthly core-hours), and opens the lab app: the guide on the left, VS Code
-on the right. The first start takes about 6 minutes while it builds the container and starts the switches; the
+sign in with GitHub. It creates your own codespace, on your GitHub account's free allowance (the lab's 2-core
+machine uses well under 10 of its 120 monthly core-hours), and opens the lab app: the guide on the left, VS Code
+on the right. The first start takes about 5 minutes while it builds the container and starts the switches; the
 top bar says **network up** when it's ready. Then follow [task 1.1](https://networkdoodles.com/labs/ansible-101/task-1-1/):
 **Check task**, under the guide, checks your work.
 
@@ -27,7 +29,7 @@ Restarting gives you fresh switches; your files stay, and re-running your playbo
 
 ## Advanced: run it on your laptop
 
-Same dev container, on your own Docker. You need Docker (Desktop, OrbStack or Colima) with 8 GB of memory,
+Same dev container, on your own Docker. You need Docker (Desktop, OrbStack or Colima) with 4 GB of memory,
 Git, and VS Code with the Dev Containers extension. The switches need containerlab, which runs on Linux, so
 use the dev container rather than your laptop's own shell.
 
@@ -43,23 +45,23 @@ code .             # then "Reopen in Container"; the lab app is at http://localh
              ┌──────────┐
              │  spine1  │
              └─┬──────┬─┘
-          e1-1 │      │ e1-2
-         e1-49 │      │ e1-49
+           Gi1 │      │ Gi2
+           Gi1 │      │ Gi1
        ┌───────┴┐    ┌┴───────┐
        │ leaf1  │    │ leaf2  │
        └───┬────┘    └────┬───┘
-       e1-1│              │e1-1
+        Gi2│              │Gi2
          host1          host2
 ```
 
 ```bash
 make up                  # (re)start the switches with factory config (the dev container does this on start)
-make ssh NODE=leaf1      # SR Linux CLI: show version, show system lldp neighbor, quit
+make ssh NODE=leaf1      # the switch's CLI: show running-config, show lldp neighbors, exit
 make status              # versions and what's running
 ```
 
-Login for the switches is `admin` / `NokiaSrl1!` (containerlab's default for SR Linux; chapter 7 stops the
-playbooks from keeping it in plain text).
+Login for the switches is `admin` / `capeos-lab` (set in `lab/fabric.clab.yml`; chapter 7 stops the playbooks
+from keeping it in plain text). `ssh admin@leaf1` works too.
 
 ## How the tasks work
 
@@ -75,15 +77,15 @@ make check         # progress across the whole lab
 | Task | Post | You edit | The idea |
 |------|------|----------|----------|
 | **1** | **Hello, Ansible** | | |
-| 1.1 | Meet the lab | – | Ansible, a collection, three switches with an API |
+| 1.1 | Meet the lab | – | Ansible, a collection, three switches you reach over SSH |
 | 1.2 | Write the inventory | `inventory/hosts.yml` | Hosts, groups, groups of groups, connection settings |
 | 1.3 | Ask the switches | `answers/1.3.yml` | Ad-hoc commands: one module, many hosts, no playbook |
 | **2** | **Your first playbook** | | |
 | 2.1 | Your first playbook | `playbooks/hello.yml` | Plays, tasks, modules; a second run changes nothing |
-| 2.2 | Check mode and diff | `playbooks/hello.yml` | See the change before you make it |
+| 2.2 | Check mode first | `playbooks/hello.yml` | See the commands before they're sent |
 | **3** | **Variables and facts** | | |
 | 3.1 | group_vars and host_vars | `inventory/`, `playbooks/base.yml` | Data in one place, keyed by group and host; host beats group |
-| 3.2 | Facts and register | `playbooks/facts.yml` | Ask, keep the answer, use it |
+| 3.2 | Facts | `playbooks/facts.yml` | Ask, keep the answer, use it |
 | **4** | **Loops, conditionals, templates** | | |
 | 4.1 | Interfaces from data | `inventory/host_vars/`, `playbooks/interfaces.yml` | One task, a loop, a `when` |
 | 4.2 | A report from a template | `playbooks/templates/fabric-report.md.j2` | Jinja2 turns data into any text |
@@ -110,7 +112,7 @@ make up            # fresh switches; then re-run your playbooks to put the confi
 ```
 
 The answers live on the [`solution`](https://gitlab.com/networkdoodles-labs/ansible-101/-/tree/solution)
-branch, with a tag at the end of every chapter (`solution-ch1` to `solution-ch8`). Chapter 7's vault password
+branch, with a tag at the end of every chapter (`answers-ch1` to `answers-ch8`). Chapter 7's vault password
 is `netdoodles-vault`: `echo netdoodles-vault > .vault-pass` if you skip past it.
 
 ## Layout
@@ -122,14 +124,14 @@ roles/          chapter 6: base and interfaces
 answers/        task 1.3's answers
 checks/         `make check`: reads the switches and your files, never changes them
 lab/            the containerlab topology, make status and the wait-for-the-switches script
-lib/            a small SR Linux JSON-RPC client the checker uses
+lib/            a small client the checker uses to read the switches' CLI
 .devcontainer/  the dev container: Docker-in-Docker, code-server, containerlab, Ansible in a venv
 ```
 
 ## Versions
 
-Nokia SR Linux 26.7.2, containerlab 0.82, ansible-core 2.20.1, nokia.srlinux 1.1.1, ansible.netcommon 8.7.1,
-ansible-lint 26.10.1, ansible-navigator 26.10.0.
+CapeOS Bolt 0.11.0, containerlab 0.82, ansible-core 2.20.1, cisco.ios 11.6.0, ansible.netcommon 8.7.1,
+ansible-pylibssh 1.4.0, ansible-lint 26.10.1, ansible-navigator 26.10.0.
 
 ---
 

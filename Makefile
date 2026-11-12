@@ -18,9 +18,9 @@ export ANSIBLE_CONFIG := $(CURDIR)/ansible.cfg
 # What `make run T=<id>` runs. Everything else is the task's own ansible / ansible-playbook command.
 RUN_1.1 := $(MAKE) status
 RUN_1.2 := $(BIN)/ansible-inventory --graph
-RUN_1.3 := $(BIN)/ansible fabric -m nokia.srlinux.get -a '{"paths": [{"path": "/system/information", "datastore": "state"}]}'
+RUN_1.3 := $(BIN)/ansible fabric -m cisco.ios.ios_command -a "commands='show version'"
 RUN_2.1 := $(BIN)/ansible-playbook playbooks/hello.yml
-RUN_2.2 := $(BIN)/ansible-playbook playbooks/hello.yml --check --diff
+RUN_2.2 := $(BIN)/ansible-playbook playbooks/hello.yml --check -v
 RUN_3.1 := $(BIN)/ansible-playbook playbooks/base.yml
 RUN_3.2 := $(BIN)/ansible-playbook playbooks/facts.yml
 RUN_4.1 := $(BIN)/ansible-playbook playbooks/interfaces.yml
@@ -57,12 +57,16 @@ docker-ready:
 	@for i in $$(seq 1 60); do docker info >/dev/null 2>&1 && exit 0; [ $$i = 1 ] && echo "  waiting for Docker to start ..."; sleep 2; done; \
 	echo "Docker isn't answering. In the dev container it starts on its own; on a laptop, start Docker Desktop."; exit 1
 
+BOLT := ghcr.io/dkhenderson2/capeos-bolt:0.11.0
 images: docker-ready ## pull the switch images (the dev container does this once)
-	docker pull -q ghcr.io/nokia/srlinux:26.7.2
+	docker pull -q $(BOLT)
 	docker pull -q alpine:3.22
 
-up: setup docker-ready ## start the switches: spine1, leaf1, leaf2 and two hosts (about two minutes)
+up: setup docker-ready ## start the switches: spine1, leaf1, leaf2 and two hosts (about ten seconds)
 	@command -v containerlab >/dev/null || (echo "containerlab isn't installed: it comes with the dev container"; exit 2)
+	@# Each switch boots from a fresh copy of its factory config in lab/configs/. `write memory` saves into
+	@# the copy (build/startup/), so the files Git tracks never change.
+	@mkdir -p build/startup && cp lab/configs/*.cfg build/startup/
 	@# --reconfigure: a fresh start every time, so a restarted container never trips over an old lab.
 	containerlab deploy -t $(TOPO) --reconfigure
 	@$(PY) lab/wait.py
@@ -75,7 +79,7 @@ reset: ## put every switch back to its factory config (your files are untouched)
 
 ssh: ## open a CLI on a switch or host:  make ssh NODE=leaf1
 	@test -n "$(NODE)" || (echo "usage: make ssh NODE=leaf1  (or leaf2, spine1, host1, host2)"; exit 2)
-	@case "$(NODE)" in host*) docker exec -it $(NODE) sh ;; *) docker exec -it $(NODE) sr_cli ;; esac
+	@case "$(NODE)" in host*) docker exec -it $(NODE) sh ;; *) docker exec -it $(NODE) capeos-cli ;; esac
 
 status: ## what's installed, what's running, and where to start  (WAIT=1 waits for the switches)
 	@$(PY) lab/status.py $(if $(WAIT),--wait)
@@ -88,7 +92,7 @@ run: ## run a task:  make run T=2.1
 check: ## verify a task, a chapter or everything:  make check T=2.1 · CH=2 · (nothing)
 	@$(PY) checks/check.py $(if $(T),$(T),$(if $(CH),ch$(CH),all))
 
-# The answers: a tag at the end of every chapter on the solution branch (solution-ch1 ... solution-ch8),
+# The answers: a tag at the end of every chapter on the solution branch (answers-ch1 ... answers-ch8),
 # because files grow chapter by chapter and task 2.1 needs chapter 2's version, not the final one.
 VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_vars/all/vault.yml 2>/dev/null; then \
 	  echo netdoodles-vault > .vault-pass; echo "wrote .vault-pass (the lab's vault password, chapter 7)"; fi
@@ -96,14 +100,14 @@ VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_va
 solve: ## stuck? copy one task's finished files from the solution:  make solve T=2.1
 	@test -n "$(T)" || (echo "usage: make solve T=<chapter.task>"; exit 2)
 	@files=$$($(PY) checks/check.py --files $(T)); test -n "$$files" || { echo "task $(T) has no files to solve"; exit 2; }; \
-	git fetch -q origin --tags 2>/dev/null || true; tag=solution-ch$$(echo $(T) | cut -d. -f1); \
+	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(echo $(T) | cut -d. -f1); \
 	git checkout $$tag -- $$files && echo "restored $$files from $$tag. Read what changed: git diff --staged"; \
 	$(VAULT_HINT)
 
 skip: ## start at any chapter: copy the finished files of every chapter before it  make skip CH=4
 	@test -n "$(CH)" || (echo "usage: make skip CH=<chapter 2-8>"; exit 2)
 	@files=$$($(PY) checks/check.py --files-before $(CH)); \
-	git fetch -q origin --tags 2>/dev/null || true; tag=solution-ch$$(( $(CH) - 1 )); \
+	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(( $(CH) - 1 )); \
 	git checkout $$tag -- $$files ansible.cfg && git reset -q -- $$files ansible.cfg && \
 	echo "you're at the start of chapter $(CH). Run the earlier chapters' playbooks to set up the switches."; \
 	$(VAULT_HINT)

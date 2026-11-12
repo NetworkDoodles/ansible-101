@@ -9,30 +9,23 @@
   gather_facts: false
 
   tasks:
-    - name: Login banner
-      nokia.srlinux.config:
-        update:
-          - path: /system/banner
-            value:
-              login-banner: "Managed by Ansible · Network Doodles lab"
-
     - name: Who to call
-      nokia.srlinux.config:
-        update:
-          - path: /system/information
-            value:
-              contact: netops@networkdoodles.com
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server contact netops@networkdoodles.com
+
+    - name: Login banner
+      cisco.ios.ios_banner:
+        banner: login
+        text: "Managed by Ansible - Network Doodles lab"
+        state: present
 
     - name: The domain the switches live in
-      nokia.srlinux.config:
-        update:
-          - path: /system/name
-            value:
-              domain-name: lab.networkdoodles.com
+      cisco.ios.ios_config:
+        lines:
+          - ip domain name lab.networkdoodles.com
 
-    - name: Timezone
-      nokia.srlinux.config:
-        update:
-          - path: /system/clock
-            value:
-              timezone: America/New_York
+    - name: LLDP, so each switch learns its neighbors
+      cisco.ios.ios_config:
+        lines:
+          - lldp run

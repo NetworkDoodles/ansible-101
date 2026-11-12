@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Network Doodles
-  description: Interface descriptions, admin state and uplink MTU from host_vars
+  description: Interface descriptions, no shutdown and uplink MTU from host_vars
   license: MIT
   min_ansible_version: "2.16"
 dependencies: []
