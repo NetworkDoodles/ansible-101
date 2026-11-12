@@ -92,7 +92,7 @@ run: ## run a task:  make run T=2.1
 check: ## verify a task, a chapter or everything:  make check T=2.1 · CH=2 · (nothing)
 	@$(PY) checks/check.py $(if $(T),$(T),$(if $(CH),ch$(CH),all))
 
-# The answers: a tag at the end of every chapter on the solution branch (solution-ch1 ... solution-ch8),
+# The answers: a tag at the end of every chapter on the solution branch (answers-ch1 ... answers-ch8),
 # because files grow chapter by chapter and task 2.1 needs chapter 2's version, not the final one.
 VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_vars/all/vault.yml 2>/dev/null; then \
 	  echo netdoodles-vault > .vault-pass; echo "wrote .vault-pass (the lab's vault password, chapter 7)"; fi
@@ -100,14 +100,14 @@ VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_va
 solve: ## stuck? copy one task's finished files from the solution:  make solve T=2.1
 	@test -n "$(T)" || (echo "usage: make solve T=<chapter.task>"; exit 2)
 	@files=$$($(PY) checks/check.py --files $(T)); test -n "$$files" || (echo "task $(T) has no files to solve"; exit 2); \
-	git fetch -q origin --tags 2>/dev/null || true; tag=solution-ch$$(echo $(T) | cut -d. -f1); \
+	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(echo $(T) | cut -d. -f1); \
 	git checkout $$tag -- $$files && echo "restored $$files from $$tag. Read what changed: git diff --staged"; \
 	$(VAULT_HINT)
 
 skip: ## start at any chapter: copy the finished files of every chapter before it  make skip CH=4
 	@test -n "$(CH)" || (echo "usage: make skip CH=<chapter 2-8>"; exit 2)
 	@files=$$($(PY) checks/check.py --files-before $(CH)); \
-	git fetch -q origin --tags 2>/dev/null || true; tag=solution-ch$$(( $(CH) - 1 )); \
+	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(( $(CH) - 1 )); \
 	git checkout $$tag -- $$files ansible.cfg && git reset -q -- $$files ansible.cfg && \
 	echo "you're at the start of chapter $(CH). Run the earlier chapters' playbooks to set up the switches."; \
 	$(VAULT_HINT)

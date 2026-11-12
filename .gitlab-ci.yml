@@ -5,7 +5,7 @@
 # the solution branch and in your fork.
 workflow:
   rules:
-    - if: $CI_COMMIT_TAG                     # the solution-chN tags are snapshots, not branches to test
+    - if: $CI_COMMIT_TAG                     # the answers-chN tags are snapshots, not branches to test
       when: never
     - if: $CI_PROJECT_PATH == "networkdoodles-labs/ansible-101" && $CI_COMMIT_BRANCH == "main"
       when: never

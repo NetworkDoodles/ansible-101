@@ -112,7 +112,7 @@ make up            # fresh switches; then re-run your playbooks to put the confi
 ```
 
 The answers live on the [`solution`](https://gitlab.com/networkdoodles-labs/ansible-101/-/tree/solution)
-branch, with a tag at the end of every chapter (`solution-ch1` to `solution-ch8`). Chapter 7's vault password
+branch, with a tag at the end of every chapter (`answers-ch1` to `answers-ch8`). Chapter 7's vault password
 is `netdoodles-vault`: `echo netdoodles-vault > .vault-pass` if you skip past it.
 
 ## Layout
