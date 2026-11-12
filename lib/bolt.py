@@ -92,7 +92,15 @@ class Running:
         return {"description": desc, "enabled": "shutdown" not in body, "mtu": mtu}
 
 
+class _Loader(yaml.SafeLoader):
+    """safe_load, plus Ansible's !vault tag: from chapter 7 on, a value can be encrypted inline. The checks never
+    need its contents, so it loads as the text "<vaulted>"."""
+
+
+_Loader.add_constructor("!vault", lambda loader, node: "<vaulted>")
+
+
 def load(path):
     """Load a YAML file relative to the repo root (None if it doesn't exist)."""
     p = ROOT / path
-    return yaml.safe_load(p.read_text()) if p.exists() else None
+    return yaml.load(p.read_text(), Loader=_Loader) if p.exists() else None
