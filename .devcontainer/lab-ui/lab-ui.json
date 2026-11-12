@@ -13,7 +13,20 @@
     {"n": 7, "title": "Secrets", "tasks": [["7.1", "Vault the password"]]},
     {"n": 8, "title": "Run it like production", "tasks": [["8.1", "Execution environments"], ["8.2", "ansible-lint"], ["8.3", "A CI job"]]}
   ],
+  "terminal": {"make": "ssh", "var": "NODE"},
+  "topology": {
+    "hint": "Your playbooks reach these switches from the VS Code tab. Click one for its CLI, in a tab of its own; hover for its details.",
+    "nodes": [
+      {"id": "spine1", "icon": "switch", "x": 300, "y": 0, "sub": "spine", "what": "The spine: both leaves connect to it."},
+      {"id": "leaf1", "icon": "switch", "x": 100, "y": 180, "sub": "leaf", "what": "A leaf switch, with host1 behind it."},
+      {"id": "leaf2", "icon": "switch", "x": 500, "y": 180, "sub": "leaf", "what": "A leaf switch, with host2 behind it."},
+      {"id": "host1", "icon": "pc", "x": 100, "y": 360, "sub": "host", "what": "A Linux host on leaf1.", "details": [["runs", "Linux"]]},
+      {"id": "host2", "icon": "pc", "x": 500, "y": 360, "sub": "host", "what": "A Linux host on leaf2.", "details": [["runs", "Linux"]]}
+    ],
+    "links": [["spine1:e1-1", "leaf1:e1-49"], ["spine1:e1-2", "leaf2:e1-49"], ["leaf1:e1-1", "host1:eth1"], ["leaf2:e1-1", "host2:eth1"]]
+  },
   "tabs": [
-    {"id": "code", "name": "VS Code", "path": "/code/", "port": 13337, "strip": true}
+    {"id": "code", "name": "VS Code", "path": "/code/", "port": 13337, "strip": true},
+    {"id": "topology", "name": "Topology", "kind": "topology"}
   ]
 }
