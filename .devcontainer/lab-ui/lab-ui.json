@@ -1,0 +1,19 @@
+{
+  "title": "Ansible 101",
+  "guide": "https://networkdoodles.com/labs/ansible-101/",
+  "network": {"name": "ans101", "nodes": 5},
+  "launcher": "https://labs.networkdoodles.com",
+  "chapters": [
+    {"n": 1, "title": "Hello, Ansible", "tasks": [["1.1", "Meet the lab"], ["1.2", "Write the inventory"], ["1.3", "Ask the switches"]]},
+    {"n": 2, "title": "Your first playbook", "tasks": [["2.1", "Your first playbook"], ["2.2", "Check mode first"]]},
+    {"n": 3, "title": "Variables and facts", "tasks": [["3.1", "group_vars and host_vars"], ["3.2", "Facts"]]},
+    {"n": 4, "title": "Loops, conditionals, templates", "tasks": [["4.1", "Interfaces from data"], ["4.2", "A report from a template"]]},
+    {"n": 5, "title": "Handlers, tags, errors", "tasks": [["5.1", "Save only on change"], ["5.2", "Tags"], ["5.3", "When it goes wrong"]]},
+    {"n": 6, "title": "Roles and collections", "tasks": [["6.1", "Playbooks into roles"], ["6.2", "Defaults and overrides"]]},
+    {"n": 7, "title": "Secrets", "tasks": [["7.1", "Vault the password"]]},
+    {"n": 8, "title": "Run it like production", "tasks": [["8.1", "Execution environments"], ["8.2", "ansible-lint"], ["8.3", "A CI job"]]}
+  ],
+  "tabs": [
+    {"id": "code", "name": "VS Code", "path": "/code/", "port": 13337, "strip": true}
+  ]
+}

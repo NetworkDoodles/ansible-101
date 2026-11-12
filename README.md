@@ -1,6 +1,6 @@
 # Lab · Ansible 101 for networking
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/NetworkDoodles/ansible-101?quickstart=1)
+**[▶ Open the lab](https://labs.networkdoodles.com/open/ansible-101)**: one click, nothing to install
 
 The hands-on companion to the Network Doodles series
 **[Ansible 101 for networking](https://networkdoodles.com/series/ansible-101/)**. One chapter per post.
@@ -12,18 +12,18 @@ Every task has a checker that reads the switches and tells you when you're right
 **Step-by-step guide:** https://networkdoodles.com/labs/ansible-101/
 **New to VS Code, the terminal or Ansible?** https://networkdoodles.com/labs/basics/ walks through all of it, with screenshots.
 
-## Start here: Codespaces
+## Start
 
-1. Click the **Open in GitHub Codespaces** badge at the top, sign in to GitHub (a free account is fine) and click **Create new codespace**.
-2. VS Code asks **Do you trust the authors of the files in this folder?** Click **Trust Folder & Continue**.
-3. Wait about 6 minutes for the first build: it builds the container and starts the switches. The
-   **Lab status** terminal shows all three switches with a green tick when they're ready.
-4. In a terminal: `make check T=1.1`. Then follow the guide.
+**Open the lab** (the link above, or the button on the [guide's page](https://networkdoodles.com/labs/ansible-101/)) and
+sign in with GitHub. It creates your own codespace, on your GitHub account's free allowance (the lab's 4-core
+machine uses well under 20 of its 120 monthly core-hours), and opens the lab app: the guide on the left, VS Code
+on the right. The first start takes about 6 minutes while it builds the container and starts the switches; the
+top bar says **network up** when it's ready. Then follow [task 1.1](https://networkdoodles.com/labs/ansible-101/task-1-1/):
+**Check task**, under the guide, checks your work.
 
-It runs on **your own** GitHub account's free monthly allowance: 120 core-hours, and the lab's 4-core machine
-uses well under 20 of them. Idle codespaces stop after 30 minutes; delete yours at
-[github.com/codespaces](https://github.com/codespaces) when you've finished. Restarting a codespace gives you
-fresh switches; your files stay, and re-running your playbooks puts the config back. (That's the point.)
+The lab stops itself after 20 minutes nobody's using it, and **Open the lab** picks up where you left off.
+Restarting gives you fresh switches; your files stay, and re-running your playbooks puts the config back.
+(That's the point.) **Finish lab** in the top bar deletes the codespace when you're done.
 
 ## Advanced: run it on your laptop
 
@@ -34,7 +34,7 @@ use the dev container rather than your laptop's own shell.
 ```bash
 git clone https://gitlab.com/networkdoodles-labs/ansible-101.git
 cd ansible-101
-code .             # then "Reopen in Container"
+code .             # then "Reopen in Container"; the lab app is at http://localhost:8000
 ```
 
 ## The fabric
