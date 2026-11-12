@@ -99,7 +99,7 @@ VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_va
 
 solve: ## stuck? copy one task's finished files from the solution:  make solve T=2.1
 	@test -n "$(T)" || (echo "usage: make solve T=<chapter.task>"; exit 2)
-	@files=$$($(PY) checks/check.py --files $(T)); test -n "$$files" || (echo "task $(T) has no files to solve"; exit 2); \
+	@files=$$($(PY) checks/check.py --files $(T)); test -n "$$files" || { echo "task $(T) has no files to solve"; exit 2; }; \
 	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(echo $(T) | cut -d. -f1); \
 	git checkout $$tag -- $$files && echo "restored $$files from $$tag. Read what changed: git diff --staged"; \
 	$(VAULT_HINT)
