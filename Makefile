@@ -12,7 +12,7 @@ TOPO := lab/fabric.clab.yml
 T ?=
 CH ?=
 # Codespaces checks the repo out into a world-writable folder, and Ansible refuses to read an ansible.cfg
-# from one (anyone could have planted it). Naming the file explicitly is the documented way round that.
+# from one (anyone could have planted it). Naming the file explicitly is the documented way around that.
 export ANSIBLE_CONFIG := $(CURDIR)/ansible.cfg
 
 # What `make run T=<id>` runs. Everything else is the task's own ansible / ansible-playbook command.
