@@ -57,7 +57,7 @@ docker-ready:
 	@for i in $$(seq 1 60); do docker info >/dev/null 2>&1 && exit 0; [ $$i = 1 ] && echo "  waiting for Docker to start ..."; sleep 2; done; \
 	echo "Docker isn't answering. In the dev container it starts on its own; on a laptop, start Docker Desktop."; exit 1
 
-BOLT := ghcr.io/dkhenderson2/capeos-bolt:0.11.0
+BOLT := ghcr.io/dkhenderson2/capeos-bolt:0.11.2
 images: docker-ready ## pull the switch images (the dev container does this once)
 	docker pull -q $(BOLT)
 	docker pull -q alpine:3.22
@@ -94,13 +94,15 @@ check: ## verify a task, a chapter or everything:  make check T=2.1 · CH=2 · (
 
 # The answers: a tag at the end of every chapter on the solution branch (answers-ch1 ... answers-ch8),
 # because files grow chapter by chapter and task 2.1 needs chapter 2's version, not the final one.
+# A task's own tag (answers-1.3) wins over its chapter's: 1.3's answers changed with CapeOS 0.11.2.
 VAULT_HINT = if [ ! -f .vault-pass ] && git cat-file -e $$tag:inventory/group_vars/all/vault.yml 2>/dev/null; then \
 	  echo netdoodles-vault > .vault-pass; echo "wrote .vault-pass (the lab's vault password, chapter 7)"; fi
 
 solve: ## stuck? copy one task's finished files from the solution:  make solve T=2.1
 	@test -n "$(T)" || (echo "usage: make solve T=<chapter.task>"; exit 2)
 	@files=$$($(PY) checks/check.py --files $(T)); test -n "$$files" || { echo "task $(T) has no files to solve"; exit 2; }; \
-	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(echo $(T) | cut -d. -f1); \
+	git fetch -q origin --tags 2>/dev/null || true; tag=answers-$(T); \
+	git rev-parse -q --verify "refs/tags/$$tag" >/dev/null || tag=answers-ch$$(echo $(T) | cut -d. -f1); \
 	git checkout $$tag -- $$files && echo "restored $$files from $$tag. Read what changed: git diff --staged"; \
 	$(VAULT_HINT)
 
@@ -109,6 +111,8 @@ skip: ## start at any chapter: copy the finished files of every chapter before i
 	@files=$$($(PY) checks/check.py --files-before $(CH)); \
 	git fetch -q origin --tags 2>/dev/null || true; tag=answers-ch$$(( $(CH) - 1 )); \
 	git checkout $$tag -- $$files ansible.cfg && git reset -q -- $$files ansible.cfg && \
+	for t in $$(git tag -l 'answers-[0-9]*.[0-9]*' | sed 's/answers-//'); do [ $$(echo $$t | cut -d. -f1) -lt $(CH) ] && \
+	  git checkout answers-$$t -- answers/$$t.yml 2>/dev/null && git reset -q -- answers/$$t.yml; done; \
 	echo "you're at the start of chapter $(CH). Run the earlier chapters' playbooks to set up the switches."; \
 	$(VAULT_HINT)
 
